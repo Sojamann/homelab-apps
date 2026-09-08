@@ -1,0 +1,9 @@
+# The entrypoint. `FluxInstance.spec.sync.path` points here.
+#
+# It holds wiring and nothing else: the Kustomizations that pull in the tiers,
+# in the order they have to happen. (here, and only here, the substitution does not work)
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - infrastructure.yaml
+  - apps.yaml

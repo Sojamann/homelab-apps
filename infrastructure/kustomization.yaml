@@ -1,0 +1,13 @@
+# Shared services -- what apps depend on being installed, but which is not the
+# foundation the `platform` layer builds. Storage, secrets and GitOps are
+# platform's; an operator serving the workloads here is not.
+#
+# If something here ships CRDs that another resource *in this tier* names, this
+# splits into `controllers` and `configs` with a Kustomization each: everything
+# under one path is applied in one pass, and a CR applied alongside the chart
+# that defines its kind is rejected. CRDs named from `apps/` do not need that
+# -- `apps` waits for this tier to be healthy first.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - cloudnative-pg

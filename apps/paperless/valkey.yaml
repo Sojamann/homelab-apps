@@ -1,0 +1,57 @@
+# The broker paperless requires. Per-app on purpose: it holds queued celery
+# tasks and the websocket channel layer, not a system of record, so it is
+# cheaper to give every app its own than to agree on key prefixes forever.
+#
+# `emptyDir` follows from the same thing. Losing the queue loses in-flight
+# consume tasks -- a document being uploaded at that moment has to be uploaded
+# again. Postgres holds everything that already exists.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: valkey
+  namespace: paperless
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: valkey
+  template:
+    metadata:
+      labels:
+        app: valkey
+    spec:
+      containers:
+        - name: valkey
+          image: valkey/valkey:9.0.6-alpine
+          # No RDB, no AOF. There is nothing here worth writing to disk.
+          args: ["--save", "", "--appendonly", "no"]
+          ports:
+            - name: valkey
+              containerPort: 6379
+          readinessProbe:
+            exec:
+              command: ["valkey-cli", "ping"]
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: valkey
+  namespace: paperless
+spec:
+  selector:
+    app: valkey
+  ports:
+    - name: valkey
+      port: 6379
+      targetPort: valkey

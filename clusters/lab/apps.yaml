@@ -1,0 +1,27 @@
+# The workloads -- one Kustomization per app, nothing else. Everything under
+# this tier may assume `infrastructure` is not merely applied but healthy:
+# `wait: true` there plus `dependsOn` here is what makes that true, and it
+# reaches the apps because they are applied by this.
+#
+# `wait: true` here now means every app is healthy, not merely applied.
+apiVersion: kustomize.toolkit.fluxcd.io/v1
+kind: Kustomization
+metadata:
+  name: apps
+  namespace: flux-system
+spec:
+  dependsOn:
+    - name: infrastructure
+  interval: 10m
+  retryInterval: 1m
+  timeout: 5m
+  path: ./apps
+  prune: true
+  wait: true
+  sourceRef:
+    kind: GitRepository
+    name: homelab-apps
+  postBuild:
+    substituteFrom:
+      - kind: Secret
+        name: cluster-vars

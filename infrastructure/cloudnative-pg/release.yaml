@@ -1,0 +1,27 @@
+# The Postgres operator. Chart 0.29.0 -> operator 1.30.0.
+#
+# It installs CRDs and watches every namespace; it runs no database itself. A
+# `Cluster` lives beside the app that owns it, under `apps/`, which is why this
+# tier stays flat: the CRDs are healthy before `apps` is applied at all, since
+# that Kustomization has `dependsOn: infrastructure` and `wait: true`.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: cloudnative-pg
+  namespace: cnpg-system
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: cloudnative-pg
+  values:
+    # One node. Raise alongside the second control plane.
+    replicaCount: 1
+
+    # Defaults, named because they are the two that would hurt to have wrong:
+    # without the CRDs nothing here has a `Cluster` kind, and namespace-scoped
+    # would mean the operator ignores every app outside this namespace.
+    crds:
+      create: true
+    config:
+      clusterWide: true

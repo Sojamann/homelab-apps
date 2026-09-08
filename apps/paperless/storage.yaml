@@ -1,0 +1,36 @@
+# Two volumes, split by whether the content can be rebuilt.
+#
+#   data  -- search index, trained classifier, logs. All of it regenerates
+#            (`document_index reindex`), so it lives on the fast
+#
+#   media -- the documents. Irreplaceable, so it lives on the mirrored pool
+#            behind the NAS snapshot task on `slow/k8s-csi`.
+#
+# `consume` and `export` are emptyDir: ingest is the web UI, and nothing
+# schedules an export yet.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-data
+  namespace: paperless
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: fast
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: paperless-media
+  namespace: paperless
+spec:
+  # RWX because the class can do it, not because anything needs it today.
+  accessModes: [ReadWriteMany]
+  storageClassName: bulk
+  resources:
+    # Not enforced. csi-driver-nfs provisions a directory, so the real limit is
+    # the pool -- this number is a label, and growing it changes nothing.
+    requests:
+      storage: 100Gi

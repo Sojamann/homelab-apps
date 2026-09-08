@@ -1,0 +1,154 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless
+  namespace: paperless
+spec:
+  replicas: 1
+  # `data` is RWO, so the old pod must be gone before the new one starts.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: paperless
+  template:
+    metadata:
+      labels:
+        app: paperless
+    spec:
+      # Off, and not optional. The kubelet injects a Docker-link variable per
+      # Service in the namespace, so `Service/paperless` produces
+      # `PAPERLESS_PORT=tcp://<clusterIP>:8000` -- and `PAPERLESS_PORT` is also
+      # paperless's own config option for the port granian binds. The app dies
+      # on startup parsing a URL as an integer. Nothing here wants the links:
+      # every address this pod needs is written out below.
+      enableServiceLinks: false
+      securityContext:
+        # The image runs its init as root and drops to uid/gid 1000. fsGroup is
+        # what makes the NFS volume writable by that gid -- the kubelet chowns
+        # the mount root, which the export permits by mapping root to root.
+        fsGroup: 1000
+        # Only when the root's group is wrong. Without it every restart walks
+        # the whole media tree over NFS.
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: paperless
+          image: ghcr.io/paperless-ngx/paperless-ngx:3.1.3
+          ports:
+            - name: http
+              containerPort: 8000
+          env:
+            - name: PAPERLESS_REDIS
+              value: redis://valkey:6379
+
+            # `paperless-db-rw` is CNPG's primary service for the cluster in
+            # database.yaml; the credential is the Secret CNPG generated.
+            - name: PAPERLESS_DBENGINE
+              value: postgresql
+            - name: PAPERLESS_DBHOST
+              value: paperless-db-rw
+            - name: PAPERLESS_DBNAME
+              value: paperless
+            - name: PAPERLESS_DBUSER
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-db-app
+                  key: username
+            - name: PAPERLESS_DBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-db-app
+                  key: password
+
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: paperless
+                  key: secret-key
+
+            # Consulted only while creating the superuser on an empty database.
+            # After that the password lives in Postgres and changes in the UI.
+            - name: PAPERLESS_ADMIN_USER
+              value: admin
+            - name: PAPERLESS_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: paperless
+                  key: admin-password
+
+            # Sets ALLOWED_HOSTS, CORS and CSRF_TRUSTED_ORIGINS in one go.
+            - name: PAPERLESS_URL
+              value: https://paperless.${app_domain}
+
+            - name: PAPERLESS_TIME_ZONE
+              value: Europe/Berlin
+            # Both packs ship in the image; nothing is installed at startup.
+            # Not retroactive -- adding a language later means re-OCRing.
+            - name: PAPERLESS_OCR_LANGUAGE
+              value: deu+eng
+
+            # One node, four cores, shared with etcd. Two workers of two
+            # threads bursts to about the whole box and no further; the CPU
+            # request below is what actually holds a share under contention.
+            - name: PAPERLESS_TASK_WORKERS
+              value: "2"
+            - name: PAPERLESS_THREADS_PER_WORKER
+              value: "2"
+
+            - name: PAPERLESS_FILENAME_FORMAT
+              value: "{{ created_year }}/{{ correspondent }}/{{ created }} {{ title }}"
+
+          # `/` redirects to the login page; a 302 is a pass. Startup is slow
+          # on first boot -- migrations, then the superuser.
+          startupProbe:
+            httpGet: { path: /, port: http }
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            httpGet: { path: /, port: http }
+            periodSeconds: 30
+          livenessProbe:
+            httpGet: { path: /, port: http }
+            periodSeconds: 30
+            failureThreshold: 5
+
+          # Requests only. The load is one person, bursty, and a CPU limit
+          # would throttle exactly the OCR run that should feel fast.
+          resources:
+            requests:
+              cpu: "1"
+              memory: 512Mi
+
+          volumeMounts:
+            - name: data
+              mountPath: /usr/src/paperless/data
+            - name: media
+              mountPath: /usr/src/paperless/media
+            - name: consume
+              mountPath: /usr/src/paperless/consume
+            - name: export
+              mountPath: /usr/src/paperless/export
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: paperless-data
+        - name: media
+          persistentVolumeClaim:
+            claimName: paperless-media
+        - name: consume
+          emptyDir: {}
+        - name: export
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: paperless
+  namespace: paperless
+spec:
+  selector:
+    app: paperless
+  ports:
+    - name: http
+      port: 8000
+      targetPort: http

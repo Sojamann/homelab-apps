@@ -1,0 +1,7 @@
+# Wiring only. One Kustomization per app, each pointing at the directory beside
+# it -- `dependsOn: infrastructure` on the tier still gates all of them, so an
+# app needs one only against another app.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - paperless.yaml
