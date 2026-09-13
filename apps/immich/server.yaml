@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-server
+  namespace: immich
+spec:
+  replicas: 1
+  # `immich-fast` is RWO.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: immich-server
+  template:
+    metadata:
+      labels:
+        app: immich-server
+    spec:
+      enableServiceLinks: false
+      # Upstream runs as root; this is its rootless setup. The NFS export maps
+      # root, so the kubelet can chown the mount roots for fsGroup, and subPath
+      # directories inherit that mode.
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: immich-server
+          image: ghcr.io/immich-app/immich-server:v3.2.0
+          ports:
+            - name: http
+              containerPort: 2283
+          env:
+            - name: DB_HOSTNAME
+              value: immich-db-rw
+            - name: DB_DATABASE_NAME
+              value: immich
+            - name: DB_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: immich-db-app
+                  key: username
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: immich-db-app
+                  key: password
+            - name: REDIS_HOSTNAME
+              value: valkey
+            - name: IMMICH_MACHINE_LEARNING_URL
+              value: http://immich-machine-learning:3003
+            - name: TZ
+              value: Europe/Berlin
+
+          startupProbe:
+            httpGet: { path: /api/server/ping, port: http }
+            periodSeconds: 10
+            failureThreshold: 30
+          readinessProbe:
+            httpGet: { path: /api/server/ping, port: http }
+            periodSeconds: 30
+          livenessProbe:
+            httpGet: { path: /api/server/ping, port: http }
+            periodSeconds: 30
+            failureThreshold: 5
+
+          # No limits: thumbnailing and ffmpeg burst on upload only.
+          resources:
+            requests:
+              cpu: 500m
+              memory: 1Gi
+
+          volumeMounts:
+            - name: media
+              mountPath: /data
+            - name: fast
+              mountPath: /data/thumbs
+              subPath: thumbs
+            - name: fast
+              mountPath: /data/encoded-video
+              subPath: encoded-video
+      volumes:
+        - name: media
+          persistentVolumeClaim:
+            claimName: immich-media
+        - name: fast
+          persistentVolumeClaim:
+            claimName: immich-fast
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-server
+  namespace: immich
+spec:
+  selector:
+    app: immich-server
+  ports:
+    - name: http
+      port: 2283
+      targetPort: http

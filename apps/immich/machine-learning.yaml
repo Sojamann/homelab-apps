@@ -1,0 +1,85 @@
+# The CLIP model is chosen in the admin UI, not here -- see docs/immich.md.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-machine-learning
+  namespace: immich
+spec:
+  replicas: 1
+  # `immich-cache` is RWO.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: immich-machine-learning
+  template:
+    metadata:
+      labels:
+        app: immich-machine-learning
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: immich-machine-learning
+          image: ghcr.io/immich-app/immich-machine-learning:v3.2.0
+          ports:
+            - name: http
+              containerPort: 3003
+          env:
+            # uid 1000 has no writable home; keep every library cache on the PVC.
+            - name: MACHINE_LEARNING_CACHE_FOLDER
+              value: /cache
+            - name: TRANSFORMERS_CACHE
+              value: /cache
+            - name: HF_XET_CACHE
+              value: /cache/huggingface-xet
+            - name: MPLCONFIGDIR
+              value: /cache/matplotlib-config
+
+          # First start downloads models before it answers.
+          startupProbe:
+            httpGet: { path: /ping, port: http }
+            periodSeconds: 10
+            failureThreshold: 60
+          readinessProbe:
+            httpGet: { path: /ping, port: http }
+            periodSeconds: 30
+          livenessProbe:
+            httpGet: { path: /ping, port: http }
+            periodSeconds: 30
+            failureThreshold: 5
+
+          # Request covers the i18n CLIP model (~3Gi) resident. The memory
+          # limit is the one exception on this node: an ML spike gets this pod
+          # OOM-killed instead of evicting paperless or a database.
+          resources:
+            requests:
+              cpu: 500m
+              memory: 3Gi
+            limits:
+              memory: 5Gi
+
+          volumeMounts:
+            - name: cache
+              mountPath: /cache
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: immich-cache
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-machine-learning
+  namespace: immich
+spec:
+  selector:
+    app: immich-machine-learning
+  ports:
+    - name: http
+      port: 3003
+      targetPort: http

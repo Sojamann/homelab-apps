@@ -23,6 +23,7 @@ graph TD
   APPS -.->|dependsOn| INFRA
 
   APPS -->|applies| PL["paperless<br/>./apps/paperless<br/>prune - wait"]
+  APPS -->|applies| IM["immich<br/>./apps/immich<br/>prune - wait"]
 ```
 > post-build applies `cluster-vars` secret providing the domain
 
@@ -44,6 +45,7 @@ with secrets and storage definitions.
 | Name          | Description       | Domain                | Docs                          |
 |---------------|-------------------|-----------------------|------------------------------ |
 | paperless-ngx | pdf management    | `paperless.${app_domain}` | [link](./docs/paperless.md)   |
+| immich        | photo library     | `photos.${app_domain}`    | [link](./docs/immich.md)      |
 
 
 - **`enableServiceLinks: false`, always.** The kubelet injects a Docker-link

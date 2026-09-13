@@ -1,0 +1,58 @@
+# Immich needs VectorChord. Stock CNPG operand; the extension comes in as an
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: immich-db
+  namespace: immich
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.6-standard-trixie
+
+  postgresql:
+    shared_preload_libraries:
+      - vchord.so
+    extensions:
+      - name: vchord
+        image:
+          reference: ghcr.io/tensorchord/vchord-scratch:pg18-v1.1.1
+        dynamic_library_path:
+          - /usr/lib/postgresql/18/lib
+        extension_control_path:
+          - /usr/share/postgresql/18/
+
+  storage:
+    size: 10Gi
+    storageClass: fast
+
+  bootstrap:
+    initdb:
+      database: immich
+      owner: immich
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 512Mi
+---
+# Declarative rather than postInitApplicationSQL: CNPG also runs
+# `ALTER EXTENSION ... UPDATE` when the vchord image is bumped. Immich refuses
+# to start outside vchord >=0.3 <2.
+apiVersion: postgresql.cnpg.io/v1
+kind: Database
+metadata:
+  name: immich-db
+  namespace: immich
+spec:
+  name: immich
+  owner: immich
+  cluster:
+    name: immich-db
+  extensions:
+    - name: vector
+      ensure: present
+    - name: vchord
+      ensure: present
+    - name: cube
+      ensure: present
+    - name: earthdistance
+      ensure: present

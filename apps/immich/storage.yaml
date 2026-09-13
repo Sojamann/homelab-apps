@@ -1,0 +1,48 @@
+# Split by whether it regenerates, and by what has to be fast.
+#
+#   media -- /data: library/, upload/, profile/, backups/. The originals, so
+#            the mirrored pool behind the NAS snapshot task.
+#
+#   fast  -- thumbs/ and encoded-video/, subPaths of one volume. Regenerable
+#            (the "Missing" jobs), and what the timeline reads on every scroll.
+#
+#   cache -- ML models, re-downloaded from Hugging Face if lost.
+#
+# `fast` zvols are thick (zvolEnableReservation), so these reserve their full
+# size on the NVMe. Start small; the class allows expansion.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-media
+  namespace: immich
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: bulk
+  resources:
+    # A label -- NFS directory, not enforced.
+    requests:
+      storage: 500Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-fast
+  namespace: immich
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: fast
+  resources:
+    requests:
+      storage: 20Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-cache
+  namespace: immich
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: fast
+  resources:
+    requests:
+      storage: 10Gi
