@@ -8,7 +8,8 @@ then stops.
 
 ```
 clusters/lab/              the entrypoint -- FluxInstance.spec.sync.path points here
-infrastructure/            shared services -- operators the apps depend on
+infrastructure/controllers shared services -- operators and charts the apps depend on
+infrastructure/configs     CRs no app owns, naming kinds the controllers install
 apps/                      a Flux Kustomization per app, plus its directory
 ```
 
@@ -17,10 +18,12 @@ diagram:
 graph TD
   ROOT["homelab-apps<br/>clusters/lab<br/>(created by the FluxInstance)"]
 
-  ROOT -->|applies| INFRA["infrastructure<br/>./infrastructure<br/>prune - wait"]
+  ROOT -->|applies| INFRA["infrastructure<br/>./infrastructure/controllers<br/>prune - wait"]
+  ROOT -->|applies| CFG["infrastructure-configs<br/>./infrastructure/configs<br/>prune - wait"]
   ROOT -->|applies| APPS["apps<br/>./apps<br/>prune - wait"]
 
-  APPS -.->|dependsOn| INFRA
+  CFG -.->|dependsOn| INFRA
+  APPS -.->|dependsOn| CFG
 
   APPS -->|applies| PL["paperless<br/>./apps/paperless<br/>prune - wait"]
   APPS -->|applies| IM["immich<br/>./apps/immich<br/>prune - wait"]
@@ -29,9 +32,15 @@ graph TD
 
 ## Infrastructure
 Shared services the apps depend on being installed, operators and the like.
-Applied directly by the `infrastructure` Kustomization, no per-item split, so
-nothing here may name a CRD another chart in this tier installs. A CR belongs
-beside the app that owns it, one tier down.
+Two Kustomizations, because a CR cannot be applied in the same pass as the
+chart that defines its kind:
+
+- `infrastructure` -> `controllers/`: the charts. Nothing here may name a CRD
+  another chart in this tier installs. The name predates the split and must
+  not change -- renaming prunes the CNPG release, its CRDs, and every database.
+- `infrastructure-configs` -> `configs/`: CRs no app owns (scrape targets
+  outside the cluster, rules, dashboards). A CR an app owns belongs beside that
+  app instead.
 
 | Name           | Description       | Namespace     | Version                     |
 |----------------|-------------------|---------------|---------------------------- |

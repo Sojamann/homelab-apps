@@ -1,0 +1,5 @@
+# CRs no app owns, naming kinds `../controllers` installs -- scrape targets
+# outside the cluster, alert rules, dashboards.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources: []

@@ -1,5 +1,8 @@
-# Shared services. `apps` depends on this tier being healthy, which is what
-# lets a CRD installed here be named by a workload there.
+# Shared services, the charts half. `infrastructure-configs` depends on this
+# tier being healthy, which is what lets a CRD installed here be named there.
+#
+# The name predates the split and stays: renaming it prunes its inventory, and
+# pruning the CNPG release takes its CRDs and every database with them.
 apiVersion: kustomize.toolkit.fluxcd.io/v1
 kind: Kustomization
 metadata:
@@ -9,7 +12,7 @@ spec:
   interval: 10m
   retryInterval: 1m
   timeout: 5m
-  path: ./infrastructure
+  path: ./infrastructure/controllers
   prune: true
   wait: true
   sourceRef:

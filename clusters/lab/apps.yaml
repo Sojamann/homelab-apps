@@ -1,7 +1,7 @@
 # The workloads -- one Kustomization per app, nothing else. Everything under
-# this tier may assume `infrastructure` is not merely applied but healthy:
-# `wait: true` there plus `dependsOn` here is what makes that true, and it
-# reaches the apps because they are applied by this.
+# this tier may assume both infrastructure tiers are not merely applied but
+# healthy: `wait: true` there plus `dependsOn` here is what makes that true, and
+# it reaches the apps because they are applied by this.
 #
 # `wait: true` here now means every app is healthy, not merely applied.
 apiVersion: kustomize.toolkit.fluxcd.io/v1
@@ -11,7 +11,7 @@ metadata:
   namespace: flux-system
 spec:
   dependsOn:
-    - name: infrastructure
+    - name: infrastructure-configs
   interval: 10m
   retryInterval: 1m
   timeout: 5m
