@@ -1,0 +1,13 @@
+# node-exporter as a TrueNAS custom app -- see machines/truenas.md.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: nas
+  namespace: monitoring
+spec:
+  jobName: nas
+  staticConfigs:
+    - targets:
+        - 10.212.4.150:9100
+      labels:
+        node: nas

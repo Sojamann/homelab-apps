@@ -1,0 +1,31 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: nas
+  namespace: monitoring
+spec:
+  groups:
+    - name: nas
+      rules:
+        - alert: NasDown
+          expr: up{job="nas"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: NAS node-exporter unreachable
+        - alert: NasPoolNotOnline
+          expr: node_zfs_zpool_state{job="nas", state="online"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Pool {{ $labels.zpool }} is not ONLINE"
+        # Fed by the TrueNAS cron job; 80% is where ZFS starts to slow down.
+        - alert: NasPoolFull
+          expr: nas_zpool_allocated_bytes{job="nas"} / nas_zpool_size_bytes{job="nas"} > 0.8
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Pool {{ $labels.pool }} is {{ $value | humanizePercentage }} full"

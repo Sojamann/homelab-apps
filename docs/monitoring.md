@@ -28,6 +28,8 @@ graph TD
   PROM -.->|any namespace| MON["ServiceMonitor - PodMonitor<br/>ScrapeConfig - PrometheusRule"]
   GR -.->|any namespace| DASH["ConfigMap<br/>grafana_dashboard: 1"]
   CFG["infrastructure/configs/dashboards<br/>K8s Overview - K8s Detail"] -->|configMapGenerator| DASH
+  NAS["infrastructure/configs/nas<br/>ScrapeConfig - PrometheusRule"] --> MON
+  PROM -->|scrapes :9100| TN["TrueNAS node-exporter<br/>10.212.4.150 - see machines/truenas.md"]
 
   GW["Gateway lab"] -->|grafana.app_domain| GR
 ```
