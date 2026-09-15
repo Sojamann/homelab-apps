@@ -84,7 +84,9 @@ spec:
 
     # Stateless: no PVC, dashboards come from ConfigMaps labelled
     # `grafana_dashboard: "1"` in any namespace. UI edits are lost on restart.
+    # The chart's own dashboards are off -- ours are in infrastructure/configs.
     grafana:
+      defaultDashboardsEnabled: false
       admin:
         existingSecret: grafana-admin
       grafana.ini:
@@ -100,6 +102,10 @@ spec:
         resources:
           requests: { cpu: 10m, memory: 50Mi }
           limits: { memory: 100Mi }
+        dashboards:
+          folderAnnotation: grafana_folder
+          provider:
+            foldersFromFilesStructure: true
 
     kube-state-metrics:
       resources:
@@ -107,6 +113,13 @@ spec:
         limits: { memory: 200Mi }
 
     prometheus-node-exporter:
+      # Its series only carry `instance` (an IP:port); dashboards group by node.
+      prometheus:
+        monitor:
+          relabelings:
+            - sourceLabels: [__meta_kubernetes_pod_node_name]
+              targetLabel: node
+              action: replace
       resources:
         requests: { cpu: 20m, memory: 30Mi }
         limits: { memory: 60Mi }

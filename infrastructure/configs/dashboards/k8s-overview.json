@@ -1,0 +1,144 @@
+{
+  "uid": "k8s-overview",
+  "title": "K8s Overview",
+  "tags": ["k8s"],
+  "editable": true,
+  "schemaVersion": 39,
+  "time": { "from": "now-6h", "to": "now" },
+  "refresh": "1m",
+  "links": [
+    { "title": "K8s Detail", "type": "link", "url": "/d/k8s-detail", "icon": "dashboard", "keepTime": true }
+  ],
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "CPU per node",
+      "description": "Solid: actual usage. Dashed: sum of pod CPU requests against allocatable -- when that nears 100% new pods stay Pending, whatever the usage.",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": { "fillOpacity": 10, "showPoints": "never" },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.8 }, { "color": "red", "value": 0.9 } ] }
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*requests$" }, "properties": [ { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 10] } }, { "id": "custom.fillOpacity", "value": 0 } ] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{node}}", "expr": "1 - avg by (node) (rate(node_cpu_seconds_total{mode=\"idle\"}[$__rate_interval]))" },
+        { "refId": "B", "legendFormat": "{{node}} requests", "expr": "sum by (node) (kube_pod_container_resource_requests{resource=\"cpu\"} and on (namespace, pod) (kube_pod_status_phase{phase=~\"Pending|Running\"} == 1)) / sum by (node) (kube_node_status_allocatable{resource=\"cpu\"})" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Memory per node",
+      "description": "Solid: 1 - MemAvailable/MemTotal. Dashed: sum of pod memory requests against allocatable.",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": { "fillOpacity": 10, "showPoints": "never" },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.8 }, { "color": "red", "value": 0.9 } ] }
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*requests$" }, "properties": [ { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 10] } }, { "id": "custom.fillOpacity", "value": 0 } ] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{node}}", "expr": "1 - sum by (node) (node_memory_MemAvailable_bytes) / sum by (node) (node_memory_MemTotal_bytes)" },
+        { "refId": "B", "legendFormat": "{{node}} requests", "expr": "sum by (node) (kube_pod_container_resource_requests{resource=\"memory\"} and on (namespace, pod) (kube_pod_status_phase{phase=~\"Pending|Running\"} == 1)) / sum by (node) (kube_node_status_allocatable{resource=\"memory\"})" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "Network per node",
+      "description": "Physical interfaces only. Receive up, transmit down.",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "Bps", "custom": { "fillOpacity": 10, "showPoints": "never" } },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*tx$" }, "properties": [ { "id": "custom.transform", "value": "negative-Y" } ] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{node}} rx", "expr": "sum by (node) (rate(node_network_receive_bytes_total{device=~\"eth.*|en.*\"}[$__rate_interval]))" },
+        { "refId": "B", "legendFormat": "{{node}} tx", "expr": "sum by (node) (rate(node_network_transmit_bytes_total{device=~\"eth.*|en.*\"}[$__rate_interval]))" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Node disk",
+      "description": "The node's /var -- Talos EPHEMERAL: images, logs, emptyDirs.",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": { "fillOpacity": 10, "showPoints": "never" },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.8 }, { "color": "red", "value": 0.9 } ] }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{node}}", "expr": "1 - sum by (node) (node_filesystem_avail_bytes{mountpoint=\"/var\"}) / sum by (node) (node_filesystem_size_bytes{mountpoint=\"/var\"})" }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "table",
+      "title": "Volumes",
+      "description": "What each PVC holds. Fill % only for `fast`: a zvol at 100% is a write error. A `bulk` PVC is a directory on the NAS pool, whose fill is the NAS's to report.",
+      "gridPos": { "x": 0, "y": 16, "w": 24, "h": 10 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Used" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
+          {
+            "matcher": { "id": "byName", "options": "Fill" },
+            "properties": [
+              { "id": "unit", "value": "percentunit" },
+              { "id": "custom.cellOptions", "value": { "type": "color-background" } },
+              { "id": "thresholds", "value": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.8 }, { "color": "red", "value": 0.9 } ] } }
+            ]
+          }
+        ]
+      },
+      "options": { "showHeader": true, "sortBy": [ { "displayName": "Used", "desc": true } ] },
+      "targets": [
+        { "refId": "A", "instant": true, "format": "table", "expr": "sum by (namespace, persistentvolumeclaim, storageclass) (kubelet_volume_stats_used_bytes * on (namespace, persistentvolumeclaim) group_left (storageclass) kube_persistentvolumeclaim_info)" },
+        { "refId": "B", "instant": true, "format": "table", "expr": "sum by (namespace, persistentvolumeclaim, storageclass) ((kubelet_volume_stats_used_bytes / kubelet_volume_stats_capacity_bytes) * on (namespace, persistentvolumeclaim) group_left (storageclass) kube_persistentvolumeclaim_info{storageclass=\"fast\"})" }
+      ],
+      "transformations": [
+        { "id": "merge", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true },
+            "indexByName": { "namespace": 0, "persistentvolumeclaim": 1, "storageclass": 2, "Value #A": 3, "Value #B": 4 },
+            "renameByName": { "namespace": "Namespace", "persistentvolumeclaim": "PVC", "storageclass": "Class", "Value #A": "Used", "Value #B": "Fill" }
+          }
+        }
+      ]
+    }
+  ]
+}
