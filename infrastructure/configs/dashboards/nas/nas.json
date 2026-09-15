@@ -1,0 +1,142 @@
+{
+  "uid": "nas",
+  "title": "NAS",
+  "tags": ["nas"],
+  "editable": true,
+  "schemaVersion": 39,
+  "time": { "from": "now-6h", "to": "now" },
+  "refresh": "1m",
+  "links": [
+    { "title": "K8s Overview", "type": "link", "url": "/d/k8s-overview", "icon": "dashboard", "keepTime": true }
+  ],
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "type": "bargauge",
+      "title": "Pool fill",
+      "description": "allocated / size from `zpool list`, via the TrueNAS cron job. For `fast` that includes every zvol behind a PVC. Stay under 80%.",
+      "gridPos": { "x": 0, "y": 0, "w": 16, "h": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.7 }, { "color": "red", "value": 0.8 } ] }
+        },
+        "overrides": []
+      },
+      "options": { "orientation": "horizontal", "displayMode": "gradient", "showUnfilled": true, "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [
+        { "refId": "A", "instant": true, "legendFormat": "{{pool}}", "expr": "nas_zpool_allocated_bytes{job=\"nas\"} / nas_zpool_size_bytes{job=\"nas\"}" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "Pool state",
+      "gridPos": { "x": 16, "y": 0, "w": 8, "h": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [ { "type": "value", "options": { "0": { "text": "NOT ONLINE", "color": "red" }, "1": { "text": "ONLINE", "color": "green" } } } ],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] }
+        },
+        "overrides": []
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [
+        { "refId": "A", "instant": true, "legendFormat": "{{zpool}}", "expr": "node_zfs_zpool_state{job=\"nas\", state=\"online\"}" }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "CPU",
+      "gridPos": { "x": 0, "y": 6, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": { "fillOpacity": 10, "showPoints": "never" },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.8 }, { "color": "red", "value": 0.9 } ] }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "cpu", "expr": "1 - avg(rate(node_cpu_seconds_total{job=\"nas\", mode=\"idle\"}[$__rate_interval]))" },
+        { "refId": "B", "legendFormat": "iowait", "expr": "avg(rate(node_cpu_seconds_total{job=\"nas\", mode=\"iowait\"}[$__rate_interval]))" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Memory",
+      "description": "Stacked to MemTotal. ARC is ZFS's cache and is not in MemAvailable, so a plain 1 - MemAvailable/MemTotal reads high on a healthy box. Used growing into ARC is the signal, not ARC itself.",
+      "gridPos": { "x": 12, "y": 6, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "min": 0,
+          "custom": { "fillOpacity": 40, "showPoints": "never", "stacking": { "mode": "normal", "group": "A" } }
+        },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "used" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "orange" } } ] },
+          { "matcher": { "id": "byName", "options": "arc" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } } ] },
+          { "matcher": { "id": "byName", "options": "available" }, "properties": [ { "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } } ] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "used", "expr": "clamp_min(node_memory_MemTotal_bytes{job=\"nas\"} - node_memory_MemAvailable_bytes{job=\"nas\"} - node_zfs_arc_size{job=\"nas\"}, 0)" },
+        { "refId": "B", "legendFormat": "arc", "expr": "node_zfs_arc_size{job=\"nas\"}" },
+        { "refId": "C", "legendFormat": "available", "expr": "node_memory_MemAvailable_bytes{job=\"nas\"}" }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "ARC hit ratio",
+      "description": "Share of reads served from RAM. Persistently low means the ARC is too small for the workload.",
+      "gridPos": { "x": 0, "y": 14, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": { "fillOpacity": 10, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "hit ratio", "expr": "rate(node_zfs_arc_hits{job=\"nas\"}[$__rate_interval]) / (rate(node_zfs_arc_hits{job=\"nas\"}[$__rate_interval]) + rate(node_zfs_arc_misses{job=\"nas\"}[$__rate_interval]))" }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Network",
+      "description": "Physical interfaces only, one per VLAN. Receive up, transmit down.",
+      "gridPos": { "x": 12, "y": 14, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "Bps", "custom": { "fillOpacity": 10, "showPoints": "never" } },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*tx$" }, "properties": [ { "id": "custom.transform", "value": "negative-Y" } ] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{device}} rx", "expr": "rate(node_network_receive_bytes_total{job=\"nas\", device=~\"en.*|eth.*\"}[$__rate_interval])" },
+        { "refId": "B", "legendFormat": "{{device}} tx", "expr": "rate(node_network_transmit_bytes_total{job=\"nas\", device=~\"en.*|eth.*\"}[$__rate_interval])" }
+      ]
+    }
+  ]
+}

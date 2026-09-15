@@ -27,7 +27,7 @@ graph TD
   PROM -->|scrapes| K["apiserver - kubelet/cAdvisor - CoreDNS"]
   PROM -.->|any namespace| MON["ServiceMonitor - PodMonitor<br/>ScrapeConfig - PrometheusRule"]
   GR -.->|any namespace| DASH["ConfigMap<br/>grafana_dashboard: 1"]
-  CFG["infrastructure/configs/dashboards<br/>K8s Overview - K8s Detail"] -->|configMapGenerator| DASH
+  CFG["infrastructure/configs/dashboards<br/>k8s/ - nas/"] -->|configMapGenerator| DASH
   NAS["infrastructure/configs/nas<br/>ScrapeConfig - PrometheusRule"] --> MON
   PROM -->|scrapes :9100| TN["TrueNAS node-exporter<br/>10.212.4.150 - see machines/truenas.md"]
 
@@ -38,16 +38,18 @@ graph TD
 
 ## Dashboards
 
-The chart's own are off. Ours live in `infrastructure/configs/dashboards/`, in
-the Grafana folder **K8s**:
+The chart's own are off. Ours live in `infrastructure/configs/dashboards/`, one
+directory per Grafana folder:
 
-| Dashboard    | For                                                                 |
-|--------------|---------------------------------------------------------------------|
-| K8s Overview | the quick look -- CPU, memory (usage + requests), network, disk per node; what each PVC holds |
-| K8s Detail   | digging in -- stats, per namespace, per pod CPU/throttling/memory, a pods table |
+| Folder | Dashboard    | For                                                                 |
+|--------|--------------|---------------------------------------------------------------------|
+| K8s    | K8s Overview | the quick look -- CPU, memory (usage + requests), network, disk per node; what each PVC holds |
+| K8s    | K8s Detail   | digging in -- stats, per namespace, per pod CPU/throttling/memory, a pods table |
+| NAS    | NAS          | pool fill + state, CPU, memory with ARC split out, ARC hit ratio, network |
 
 Anything else is in Prometheus and reachable through Explore.
 
 **Changing one:** edit in the UI, Share -> Export -> paste over the JSON file,
 commit. Grafana is stateless, so an unexported edit is gone on the next restart.
-A new dashboard is a new file plus a `configMapGenerator` entry.
+A new dashboard is a new file plus a `configMapGenerator` entry; a new folder
+is a new directory.
