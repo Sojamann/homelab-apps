@@ -1,0 +1,112 @@
+# Prometheus Operator, Prometheus, Alertmanager, Grafana, node-exporter and
+# kube-state-metrics. Chart 91.3.0 -> operator v0.94.0.
+#
+# The CRDs it installs (ServiceMonitor, PodMonitor, ScrapeConfig,
+# PrometheusRule) are named from `infrastructure/configs` or beside the app
+# that owns the target, never from this tier.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: kube-prometheus-stack
+  namespace: monitoring
+spec:
+  interval: 1h
+  chartRef:
+    kind: OCIRepository
+    name: kube-prometheus-stack
+  values:
+    # Talos binds these to 127.0.0.1, so their targets would be permanently
+    # down. Deliberately not exposed; kube-proxy is replaced by Cilium.
+    kubeEtcd:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    kubeControllerManager:
+      enabled: false
+    kubeProxy:
+      enabled: false
+    defaultRules:
+      rules:
+        etcd: false
+        kubeSchedulerAlerting: false
+        kubeSchedulerRecording: false
+        kubeControllerManager: false
+        kubeProxy: false
+        windows: false
+
+    prometheusOperator:
+      resources:
+        requests: { cpu: 50m, memory: 100Mi }
+        limits: { memory: 200Mi }
+
+    prometheus:
+      prometheusSpec:
+        # Pick up every monitor, rule and scrape config in every namespace, not
+        # only those labelled with this release.
+        ruleSelectorNilUsesHelmValues: false
+        serviceMonitorSelectorNilUsesHelmValues: false
+        podMonitorSelectorNilUsesHelmValues: false
+        probeSelectorNilUsesHelmValues: false
+        scrapeConfigSelectorNilUsesHelmValues: false
+
+        # The size cap goes first, so a full volume trims history instead of
+        # stopping ingestion.
+        retention: 30d
+        retentionSize: 18GB
+        storageSpec:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: fast
+              accessModes: [ReadWriteOnce]
+              resources:
+                requests:
+                  storage: 20Gi
+
+        # No CPU limits anywhere: they cause the throttling this is here to watch.
+        resources:
+          requests: { cpu: 200m, memory: 1Gi }
+          limits: { memory: 2Gi }
+
+    # No receiver yet -- alerts are visible, nobody is notified.
+    alertmanager:
+      alertmanagerSpec:
+        storage:
+          volumeClaimTemplate:
+            spec:
+              storageClassName: fast
+              accessModes: [ReadWriteOnce]
+              resources:
+                requests:
+                  storage: 1Gi
+        resources:
+          requests: { cpu: 10m, memory: 50Mi }
+          limits: { memory: 100Mi }
+
+    # Stateless: no PVC, dashboards come from ConfigMaps labelled
+    # `grafana_dashboard: "1"` in any namespace. UI edits are lost on restart.
+    grafana:
+      admin:
+        existingSecret: grafana-admin
+      grafana.ini:
+        server:
+          root_url: https://grafana.${app_domain}
+        auth.anonymous:
+          enabled: true
+          org_role: Viewer
+      resources:
+        requests: { cpu: 50m, memory: 200Mi }
+        limits: { memory: 400Mi }
+      sidecar:
+        resources:
+          requests: { cpu: 10m, memory: 50Mi }
+          limits: { memory: 100Mi }
+
+    kube-state-metrics:
+      resources:
+        requests: { cpu: 20m, memory: 100Mi }
+        limits: { memory: 200Mi }
+
+    prometheus-node-exporter:
+      resources:
+        requests: { cpu: 20m, memory: 30Mi }
+        limits: { memory: 60Mi }
