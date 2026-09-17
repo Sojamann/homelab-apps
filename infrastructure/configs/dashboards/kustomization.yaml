@@ -12,3 +12,4 @@ kind: Kustomization
 resources:
   - k8s
   - nas
+  - proxmox

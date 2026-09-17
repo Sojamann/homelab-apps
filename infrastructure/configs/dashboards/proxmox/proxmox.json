@@ -1,0 +1,204 @@
+{
+  "uid": "proxmox",
+  "title": "Proxmox",
+  "tags": ["proxmox"],
+  "editable": true,
+  "schemaVersion": 39,
+  "time": { "from": "now-6h", "to": "now" },
+  "refresh": "1m",
+  "links": [
+    { "title": "K8s Overview", "type": "link", "url": "/d/k8s-overview", "icon": "dashboard", "keepTime": true },
+    { "title": "NAS", "type": "link", "url": "/d/nas", "icon": "dashboard", "keepTime": true }
+  ],
+  "templating": { "list": [] },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Cluster",
+      "description": "Quorum. A cluster that loses it stops allowing changes to guests.",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [ { "type": "value", "options": { "0": { "text": "NO QUORUM", "color": "red" }, "1": { "text": "QUORATE", "color": "green" } } } ],
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "red", "value": null }, { "color": "green", "value": 1 } ] }
+        },
+        "overrides": []
+      },
+      "options": { "colorMode": "background", "graphMode": "none", "textMode": "value_and_name", "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [
+        { "refId": "A", "instant": true, "legendFormat": "{{id}}", "expr": "max by (id) (pve_cluster_info{quorate=\"1\"})" }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "bargauge",
+      "title": "Storage fill",
+      "description": "Each PVE storage -- guest disks, ISOs, backups and snippets all share `local`.",
+      "gridPos": { "x": 6, "y": 0, "w": 18, "h": 6 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.7 }, { "color": "red", "value": 0.8 } ] }
+        },
+        "overrides": []
+      },
+      "options": { "orientation": "horizontal", "displayMode": "gradient", "showUnfilled": true, "reduceOptions": { "calcs": ["lastNotNull"] } },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}} / {{storage}}",
+          "expr": "(pve_disk_usage_bytes{id=~\"storage/.*\"} / pve_disk_size_bytes{id=~\"storage/.*\"}) * on (id) group_left (node, storage) pve_storage_info"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "CPU per host",
+      "gridPos": { "x": 0, "y": 6, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": { "fillOpacity": 10, "showPoints": "never" },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.8 }, { "color": "red", "value": 0.9 } ] }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{node}}", "expr": "1 - avg by (node) (rate(node_cpu_seconds_total{job=\"proxmox\", mode=\"idle\"}[$__rate_interval]))" },
+        { "refId": "B", "legendFormat": "{{node}} iowait", "expr": "avg by (node) (rate(node_cpu_seconds_total{job=\"proxmox\", mode=\"iowait\"}[$__rate_interval]))" }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Memory per host",
+      "description": "Solid: 1 - MemAvailable/MemTotal. Dashed: what the guests are assigned -- the host cannot start more than it has, whatever the usage says.",
+      "gridPos": { "x": 12, "y": 6, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "custom": { "fillOpacity": 10, "showPoints": "never" },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.8 }, { "color": "red", "value": 0.9 } ] }
+        },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*assigned$" }, "properties": [ { "id": "custom.lineStyle", "value": { "fill": "dash", "dash": [10, 10] } }, { "id": "custom.fillOpacity", "value": 0 } ] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{node}}", "expr": "1 - sum by (node) (node_memory_MemAvailable_bytes{job=\"proxmox\"}) / sum by (node) (node_memory_MemTotal_bytes{job=\"proxmox\"})" },
+        {
+          "refId": "B",
+          "legendFormat": "{{node}} assigned",
+          "expr": "sum by (node) (pve_memory_size_bytes{id=~\"qemu/.*|lxc/.*\"} * on (id) group_left (node) pve_guest_info) / on (node) group_left () sum by (node) (node_memory_MemTotal_bytes{job=\"proxmox\"})"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Root filesystem",
+      "description": "The host's own `/`. Guest disks live on a PVE storage -- see the bars above.",
+      "gridPos": { "x": 0, "y": 14, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "custom": { "fillOpacity": 10, "showPoints": "never" },
+          "thresholds": { "mode": "absolute", "steps": [ { "color": "green", "value": null }, { "color": "orange", "value": 0.8 }, { "color": "red", "value": 0.9 } ] }
+        },
+        "overrides": []
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{node}}", "expr": "1 - sum by (node) (node_filesystem_avail_bytes{job=\"proxmox\", mountpoint=\"/\"}) / sum by (node) (node_filesystem_size_bytes{job=\"proxmox\", mountpoint=\"/\"})" }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Network per host",
+      "description": "Physical interfaces and the bridge. Receive up, transmit down.",
+      "gridPos": { "x": 12, "y": 14, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": { "unit": "Bps", "custom": { "fillOpacity": 10, "showPoints": "never" } },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*tx$" }, "properties": [ { "id": "custom.transform", "value": "negative-Y" } ] }
+        ]
+      },
+      "options": { "legend": { "displayMode": "list", "placement": "bottom" }, "tooltip": { "mode": "multi" } },
+      "targets": [
+        { "refId": "A", "legendFormat": "{{node}} {{device}} rx", "expr": "rate(node_network_receive_bytes_total{job=\"proxmox\", device=~\"en.*|eth.*|vmbr.*\"}[$__rate_interval])" },
+        { "refId": "B", "legendFormat": "{{node}} {{device}} tx", "expr": "rate(node_network_transmit_bytes_total{job=\"proxmox\", device=~\"en.*|eth.*|vmbr.*\"}[$__rate_interval])" }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Guests",
+      "description": "Every VM and container the cluster knows. Memory is what the guest agent reports, so a guest without one reads high.",
+      "gridPos": { "x": 0, "y": 22, "w": 24, "h": 10 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "fieldConfig": {
+        "defaults": {},
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Status" },
+            "properties": [
+              { "id": "mappings", "value": [ { "type": "value", "options": { "0": { "text": "stopped", "color": "red" }, "1": { "text": "running", "color": "green" } } } ] },
+              { "id": "custom.cellOptions", "value": { "type": "color-text" } }
+            ]
+          },
+          { "matcher": { "id": "byName", "options": "CPU" }, "properties": [ { "id": "unit", "value": "percentunit" } ] },
+          { "matcher": { "id": "byName", "options": "Mem used" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
+          { "matcher": { "id": "byName", "options": "Mem max" }, "properties": [ { "id": "unit", "value": "bytes" } ] },
+          { "matcher": { "id": "byName", "options": "Disk" }, "properties": [ { "id": "unit", "value": "bytes" } ] }
+        ]
+      },
+      "options": { "showHeader": true, "sortBy": [ { "displayName": "Name", "desc": false } ] },
+      "targets": [
+        { "refId": "A", "instant": true, "format": "table", "expr": "pve_up{id=~\"qemu/.*|lxc/.*\"} * on (id) group_left (name, node, type) pve_guest_info" },
+        { "refId": "B", "instant": true, "format": "table", "expr": "pve_cpu_usage_ratio{id=~\"qemu/.*|lxc/.*\"}" },
+        { "refId": "C", "instant": true, "format": "table", "expr": "pve_memory_usage_bytes{id=~\"qemu/.*|lxc/.*\"}" },
+        { "refId": "D", "instant": true, "format": "table", "expr": "pve_memory_size_bytes{id=~\"qemu/.*|lxc/.*\"}" },
+        { "refId": "E", "instant": true, "format": "table", "expr": "pve_disk_size_bytes{id=~\"qemu/.*|lxc/.*\"}" }
+      ],
+      "transformations": [
+        { "id": "merge", "options": {} },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": { "Time": true, "id": true, "job": true, "instance": true, "__name__": true },
+            "indexByName": { "name": 0, "node": 1, "type": 2, "Value #A": 3, "Value #B": 4, "Value #C": 5, "Value #D": 6, "Value #E": 7 },
+            "renameByName": {
+              "name": "Name",
+              "node": "Node",
+              "type": "Type",
+              "Value #A": "Status",
+              "Value #B": "CPU",
+              "Value #C": "Mem used",
+              "Value #D": "Mem max",
+              "Value #E": "Disk"
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
