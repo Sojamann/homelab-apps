@@ -37,7 +37,7 @@ spec:
     prometheusOperator:
       resources:
         requests: { cpu: 50m, memory: 100Mi }
-        limits: { memory: 200Mi }
+        limits: { memory: 400Mi }
 
     prometheus:
       prometheusSpec:
@@ -65,7 +65,7 @@ spec:
         # No CPU limits anywhere: they cause the throttling this is here to watch.
         resources:
           requests: { cpu: 200m, memory: 1Gi }
-          limits: { memory: 2Gi }
+          limits: { memory: 4Gi }
 
     # No receiver yet -- alerts are visible, nobody is notified.
     alertmanager:
@@ -80,7 +80,7 @@ spec:
                   storage: 1Gi
         resources:
           requests: { cpu: 10m, memory: 50Mi }
-          limits: { memory: 100Mi }
+          limits: { memory: 256Mi }
 
     # Stateless: no PVC, dashboards come from ConfigMaps labelled
     # `grafana_dashboard: "1"` in any namespace. UI edits are lost on restart.
@@ -95,13 +95,20 @@ spec:
         auth.anonymous:
           enabled: true
           org_role: Viewer
+        # Grafana's sqlite is on an emptyDir. WAL lets the readers and the
+        # dashboard sidecar's writes overlap instead of returning SQLITE_BUSY.
+        database:
+          wal: true
+      # 400Mi was ~200KiB under the peak: constant GC, health checks timing
+      # out, and the kubelet killing it on liveness. Limits here are ceilings
+      # against a leak, not reservations -- only requests take node capacity.
       resources:
-        requests: { cpu: 50m, memory: 200Mi }
-        limits: { memory: 400Mi }
+        requests: { cpu: 50m, memory: 300Mi }
+        limits: { memory: 1Gi }
       sidecar:
         resources:
           requests: { cpu: 10m, memory: 50Mi }
-          limits: { memory: 100Mi }
+          limits: { memory: 256Mi }
         dashboards:
           folderAnnotation: grafana_folder
           provider:
@@ -110,7 +117,7 @@ spec:
     kube-state-metrics:
       resources:
         requests: { cpu: 20m, memory: 100Mi }
-        limits: { memory: 200Mi }
+        limits: { memory: 400Mi }
 
     prometheus-node-exporter:
       # Its series only carry `instance` (an IP:port); dashboards group by node.
@@ -122,4 +129,4 @@ spec:
               action: replace
       resources:
         requests: { cpu: 20m, memory: 30Mi }
-        limits: { memory: 60Mi }
+        limits: { memory: 128Mi }
