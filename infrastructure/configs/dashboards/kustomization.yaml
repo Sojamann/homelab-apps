@@ -1,15 +1,29 @@
-# Grafana dashboards, one directory per Grafana folder, one ConfigMap per JSON
-# file, picked up by the sidecar.
+# Grafana dashboards, one ConfigMap per JSON file, picked up by the sidecar.
 #
 # Edit in the UI, then Share -> Export -> paste over the file here: Grafana is
 # stateless, so the export is the save.
 #
 # Substitution is off for these: Flux would otherwise read Grafana's
-# `${namespace}` variables as its own and blank them. generatorOptions do not
-# inherit, so each directory repeats them.
+# `${namespace}` variables as its own and blank them.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-resources:
-  - k8s
-  - nas
-  - proxmox
+namespace: monitoring
+generatorOptions:
+  disableNameSuffixHash: true
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    kustomize.toolkit.fluxcd.io/substitute: disabled
+configMapGenerator:
+  - name: dashboard-k8s-overview
+    files:
+      - k8s-overview.json
+  - name: dashboard-k8s-detail
+    files:
+      - k8s-detail.json
+  - name: dashboard-nas
+    files:
+      - nas.json
+  - name: dashboard-proxmox
+    files:
+      - proxmox.json

@@ -109,10 +109,6 @@ spec:
         resources:
           requests: { cpu: 10m, memory: 50Mi }
           limits: { memory: 256Mi }
-        dashboards:
-          folderAnnotation: grafana_folder
-          provider:
-            foldersFromFilesStructure: true
 
     kube-state-metrics:
       resources:
