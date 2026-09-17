@@ -45,6 +45,7 @@ no folders:
 
 | Dashboard    | For                                                                 |
 |--------------|---------------------------------------------------------------------|
+| Lab (home)   | traffic lights only -- NAS pools + host, Proxmox hosts + storage, k8s nodes: status, CPU, memory, disk, network errors/drops; each links to its detail dashboard |
 | K8s Overview | the quick look -- CPU, memory (usage + requests), network, disk per node; what each PVC holds |
 | K8s Detail   | digging in -- stats, per namespace, per pod CPU/throttling/memory, a pods table |
 | NAS          | pool fill + state, CPU, memory with ARC split out, ARC hit ratio, network |

@@ -99,6 +99,9 @@ spec:
         # dashboard sidecar's writes overlap instead of returning SQLITE_BUSY.
         database:
           wal: true
+        # The sidecar writes each ConfigMap key here.
+        dashboards:
+          default_home_dashboard_path: /tmp/dashboards/lab.json
       # 400Mi was ~200KiB under the peak: constant GC, health checks timing
       # out, and the kubelet killing it on liveness. Limits here are ceilings
       # against a leak, not reservations -- only requests take node capacity.

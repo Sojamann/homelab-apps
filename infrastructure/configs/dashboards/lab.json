@@ -1,0 +1,1291 @@
+{
+  "uid": "lab",
+  "title": "Lab",
+  "tags": [
+    "overview"
+  ],
+  "editable": true,
+  "schemaVersion": 39,
+  "time": {
+    "from": "now-6h",
+    "to": "now"
+  },
+  "refresh": "1m",
+  "links": [
+    {
+      "title": "K8s Overview",
+      "type": "link",
+      "url": "/d/k8s-overview",
+      "icon": "dashboard",
+      "keepTime": true
+    },
+    {
+      "title": "K8s Detail",
+      "type": "link",
+      "url": "/d/k8s-detail",
+      "icon": "dashboard",
+      "keepTime": true
+    },
+    {
+      "title": "NAS",
+      "type": "link",
+      "url": "/d/nas",
+      "icon": "dashboard",
+      "keepTime": true
+    },
+    {
+      "title": "Proxmox",
+      "type": "link",
+      "url": "/d/proxmox",
+      "icon": "dashboard",
+      "keepTime": true
+    }
+  ],
+  "templating": {
+    "list": []
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "row",
+      "title": "NAS",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 2,
+      "type": "bargauge",
+      "title": "Pool fill",
+      "gridPos": {
+        "x": 0,
+        "y": 1,
+        "w": 12,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.8
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{pool}}",
+          "expr": "nas_zpool_allocated_bytes{job=\"nas\"} / nas_zpool_size_bytes{job=\"nas\"}"
+        }
+      ],
+      "links": [
+        {
+          "title": "NAS",
+          "url": "/d/nas"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Pool state",
+      "gridPos": {
+        "x": 12,
+        "y": 1,
+        "w": 12,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "NOT ONLINE",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "ONLINE",
+                  "color": "green"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{zpool}}",
+          "expr": "node_zfs_zpool_state{job=\"nas\", state=\"online\"}"
+        }
+      ],
+      "links": [
+        {
+          "title": "NAS",
+          "url": "/d/nas"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Status",
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "DOWN",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "UP",
+                  "color": "green"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "up{job=\"nas\"}"
+        }
+      ],
+      "links": [
+        {
+          "title": "NAS",
+          "url": "/d/nas"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "CPU",
+      "gridPos": {
+        "x": 4,
+        "y": 6,
+        "w": 5,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "1 - avg by (node) (rate(node_cpu_seconds_total{job=\"nas\", mode=\"idle\"}[5m]))"
+        }
+      ],
+      "links": [
+        {
+          "title": "NAS",
+          "url": "/d/nas"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Memory",
+      "gridPos": {
+        "x": 9,
+        "y": 6,
+        "w": 5,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "clamp_min(sum by (node) (node_memory_MemTotal_bytes{job=\"nas\"} - node_memory_MemAvailable_bytes{job=\"nas\"} - node_zfs_arc_size{job=\"nas\"}), 0) / sum by (node) (node_memory_MemTotal_bytes{job=\"nas\"})"
+        }
+      ],
+      "links": [
+        {
+          "title": "NAS",
+          "url": "/d/nas"
+        }
+      ],
+      "description": "ARC left out: ZFS gives it back on demand, but MemAvailable does not count it."
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Disk /",
+      "gridPos": {
+        "x": 14,
+        "y": 6,
+        "w": 5,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "1 - sum by (node) (node_filesystem_avail_bytes{job=\"nas\", mountpoint=\"/\"}) / sum by (node) (node_filesystem_size_bytes{job=\"nas\", mountpoint=\"/\"})"
+        }
+      ],
+      "links": [
+        {
+          "title": "NAS",
+          "url": "/d/nas"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Network",
+      "gridPos": {
+        "x": 19,
+        "y": 6,
+        "w": 5,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pps",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "sum by (node) (rate(node_network_receive_errs_total{job=\"nas\", device=~\"en.*|eth.*|nic.*\"}[5m]) + rate(node_network_transmit_errs_total{job=\"nas\", device=~\"en.*|eth.*|nic.*\"}[5m]) + rate(node_network_receive_drop_total{job=\"nas\", device=~\"en.*|eth.*|nic.*\"}[5m]) + rate(node_network_transmit_drop_total{job=\"nas\", device=~\"en.*|eth.*|nic.*\"}[5m]))"
+        }
+      ],
+      "description": "Errors + drops per second on physical interfaces. Some drops are normal (frames nobody listens for), so only a sustained rate colours it.",
+      "links": [
+        {
+          "title": "NAS",
+          "url": "/d/nas"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "row",
+      "title": "Proxmox",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 10,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 10,
+      "type": "stat",
+      "title": "Status",
+      "gridPos": {
+        "x": 0,
+        "y": 11,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "DOWN / NO QUORUM",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "UP",
+                  "color": "green"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "label_replace(pve_up{id=~\"node/.*\"}, \"node\", \"$1\", \"id\", \"node/(.*)\") * on () group_left () (count(pve_cluster_info{quorate=\"1\"}) or vector(0))"
+        }
+      ],
+      "description": "Red when PVE reports the node down or the cluster lost quorum.",
+      "links": [
+        {
+          "title": "Proxmox",
+          "url": "/d/proxmox"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "type": "stat",
+      "title": "CPU",
+      "gridPos": {
+        "x": 4,
+        "y": 11,
+        "w": 5,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "1 - avg by (node) (rate(node_cpu_seconds_total{job=\"proxmox\", mode=\"idle\"}[5m]))"
+        }
+      ],
+      "links": [
+        {
+          "title": "Proxmox",
+          "url": "/d/proxmox"
+        }
+      ]
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Memory",
+      "gridPos": {
+        "x": 9,
+        "y": 11,
+        "w": 5,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "1 - sum by (node) (node_memory_MemAvailable_bytes{job=\"proxmox\"}) / sum by (node) (node_memory_MemTotal_bytes{job=\"proxmox\"})"
+        }
+      ],
+      "links": [
+        {
+          "title": "Proxmox",
+          "url": "/d/proxmox"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "type": "stat",
+      "title": "Disk /",
+      "gridPos": {
+        "x": 14,
+        "y": 11,
+        "w": 5,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "1 - sum by (node) (node_filesystem_avail_bytes{job=\"proxmox\", mountpoint=\"/\"}) / sum by (node) (node_filesystem_size_bytes{job=\"proxmox\", mountpoint=\"/\"})"
+        }
+      ],
+      "links": [
+        {
+          "title": "Proxmox",
+          "url": "/d/proxmox"
+        }
+      ]
+    },
+    {
+      "id": 14,
+      "type": "stat",
+      "title": "Network",
+      "gridPos": {
+        "x": 19,
+        "y": 11,
+        "w": 5,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pps",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "sum by (node) (rate(node_network_receive_errs_total{job=\"proxmox\", device=~\"en.*|eth.*|nic.*\"}[5m]) + rate(node_network_transmit_errs_total{job=\"proxmox\", device=~\"en.*|eth.*|nic.*\"}[5m]) + rate(node_network_receive_drop_total{job=\"proxmox\", device=~\"en.*|eth.*|nic.*\"}[5m]) + rate(node_network_transmit_drop_total{job=\"proxmox\", device=~\"en.*|eth.*|nic.*\"}[5m]))"
+        }
+      ],
+      "description": "Errors + drops per second on physical interfaces. Some drops are normal (frames nobody listens for), so only a sustained rate colours it.",
+      "links": [
+        {
+          "title": "Proxmox",
+          "url": "/d/proxmox"
+        }
+      ]
+    },
+    {
+      "id": 15,
+      "type": "bargauge",
+      "title": "Storage fill",
+      "gridPos": {
+        "x": 0,
+        "y": 15,
+        "w": 24,
+        "h": 5
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.7
+              },
+              {
+                "color": "red",
+                "value": 0.8
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "displayMode": "gradient",
+        "showUnfilled": true,
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}} / {{storage}}",
+          "expr": "(pve_disk_usage_bytes{id=~\"storage/.*\"} / pve_disk_size_bytes{id=~\"storage/.*\"}) * on (id) group_left (node, storage) pve_storage_info"
+        }
+      ],
+      "links": [
+        {
+          "title": "Proxmox",
+          "url": "/d/proxmox"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "type": "row",
+      "title": "K8s",
+      "collapsed": false,
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 24,
+        "h": 1
+      },
+      "panels": []
+    },
+    {
+      "id": 17,
+      "type": "stat",
+      "title": "Status",
+      "gridPos": {
+        "x": 0,
+        "y": 21,
+        "w": 4,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [
+            {
+              "type": "value",
+              "options": {
+                "0": {
+                  "text": "NOT READY",
+                  "color": "red"
+                },
+                "1": {
+                  "text": "READY",
+                  "color": "green"
+                }
+              }
+            }
+          ],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "green",
+                "value": 1
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "clamp_min(sum by (node) (kube_node_status_condition{condition=\"Ready\", status=\"true\"}) - sum by (node) (kube_node_status_condition{condition!=\"Ready\", status=\"true\"}), 0)"
+        }
+      ],
+      "description": "Red when not Ready or any pressure / NetworkUnavailable condition is set.",
+      "links": [
+        {
+          "title": "K8s Overview",
+          "url": "/d/k8s-overview"
+        }
+      ]
+    },
+    {
+      "id": 18,
+      "type": "stat",
+      "title": "CPU",
+      "gridPos": {
+        "x": 4,
+        "y": 21,
+        "w": 5,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "1 - avg by (node) (rate(node_cpu_seconds_total{job=\"node-exporter\", mode=\"idle\"}[5m]))"
+        }
+      ],
+      "links": [
+        {
+          "title": "K8s Overview",
+          "url": "/d/k8s-overview"
+        }
+      ]
+    },
+    {
+      "id": 19,
+      "type": "stat",
+      "title": "Memory",
+      "gridPos": {
+        "x": 9,
+        "y": 21,
+        "w": 5,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "1 - sum by (node) (node_memory_MemAvailable_bytes{job=\"node-exporter\"}) / sum by (node) (node_memory_MemTotal_bytes{job=\"node-exporter\"})"
+        }
+      ],
+      "links": [
+        {
+          "title": "K8s Overview",
+          "url": "/d/k8s-overview"
+        }
+      ]
+    },
+    {
+      "id": 20,
+      "type": "stat",
+      "title": "Disk /var",
+      "gridPos": {
+        "x": 14,
+        "y": 21,
+        "w": 5,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 0.8
+              },
+              {
+                "color": "red",
+                "value": 0.9
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "1 - sum by (node) (node_filesystem_avail_bytes{job=\"node-exporter\", mountpoint=\"/var\"}) / sum by (node) (node_filesystem_size_bytes{job=\"node-exporter\", mountpoint=\"/var\"})"
+        }
+      ],
+      "links": [
+        {
+          "title": "K8s Overview",
+          "url": "/d/k8s-overview"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "type": "stat",
+      "title": "Network",
+      "gridPos": {
+        "x": 19,
+        "y": 21,
+        "w": 5,
+        "h": 4
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "pps",
+          "decimals": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              },
+              {
+                "color": "orange",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 10
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "textMode": "value_and_name",
+        "justifyMode": "center",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ]
+        }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "instant": true,
+          "legendFormat": "{{node}}",
+          "expr": "sum by (node) (rate(node_network_receive_errs_total{job=\"node-exporter\", device=~\"en.*|eth.*|nic.*\"}[5m]) + rate(node_network_transmit_errs_total{job=\"node-exporter\", device=~\"en.*|eth.*|nic.*\"}[5m]) + rate(node_network_receive_drop_total{job=\"node-exporter\", device=~\"en.*|eth.*|nic.*\"}[5m]) + rate(node_network_transmit_drop_total{job=\"node-exporter\", device=~\"en.*|eth.*|nic.*\"}[5m]))"
+        }
+      ],
+      "description": "Errors + drops per second on physical interfaces. Some drops are normal (frames nobody listens for), so only a sustained rate colours it.",
+      "links": [
+        {
+          "title": "K8s Overview",
+          "url": "/d/k8s-overview"
+        }
+      ]
+    }
+  ]
+}

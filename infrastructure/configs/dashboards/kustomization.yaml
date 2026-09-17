@@ -15,6 +15,9 @@ generatorOptions:
   annotations:
     kustomize.toolkit.fluxcd.io/substitute: disabled
 configMapGenerator:
+  - name: dashboard-lab
+    files:
+      - lab.json
   - name: dashboard-k8s-overview
     files:
       - k8s-overview.json
