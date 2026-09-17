@@ -10,7 +10,7 @@ spec:
   jobName: proxmox
   staticConfigs:
     - targets:
-        - 10.212.2.151:9100
+        - titan.${lab_domain}:9100
       labels:
         node: titan
 ---
@@ -30,4 +30,4 @@ spec:
       - localhost
   staticConfigs:
     - targets:
-        - 10.212.2.151:9221
+        - titan.${lab_domain}:9221

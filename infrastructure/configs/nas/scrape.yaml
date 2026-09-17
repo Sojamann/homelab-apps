@@ -8,6 +8,6 @@ spec:
   jobName: nas
   staticConfigs:
     - targets:
-        - 10.212.4.150:9100
+        - nas-k8s.${lab_domain}:9100
       labels:
         node: nas
