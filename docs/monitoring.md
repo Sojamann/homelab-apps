@@ -29,7 +29,9 @@ graph TD
   GR -.->|any namespace| DASH["ConfigMap<br/>grafana_dashboard: 1"]
   CFG["infrastructure/configs/dashboards<br/>k8s/ - nas/"] -->|configMapGenerator| DASH
   NAS["infrastructure/configs/nas<br/>ScrapeConfig - PrometheusRule"] --> MON
+  PVE["infrastructure/configs/proxmox<br/>ScrapeConfig - PrometheusRule"] --> MON
   PROM -->|scrapes :9100| TN["TrueNAS node-exporter<br/>10.212.4.150 - see machines/truenas.md"]
+  PROM -->|scrapes :9100 - :9221<br/>via metrics-allow-proxmox| PX["Proxmox hosts<br/>node-exporter + pve-exporter"]
 
   GW["Gateway lab"] -->|grafana.app_domain| GR
 ```

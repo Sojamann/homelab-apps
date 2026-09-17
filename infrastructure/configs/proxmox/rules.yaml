@@ -1,0 +1,40 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: proxmox
+  namespace: monitoring
+spec:
+  groups:
+    - name: proxmox
+      rules:
+        - alert: ProxmoxExporterDown
+          expr: up{job=~"proxmox|pve"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "{{ $labels.job }} exporter on {{ $labels.instance }} unreachable"
+        - alert: ProxmoxQuorumLost
+          expr: pve_cluster_info{quorate!="1"} == 1
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "Cluster {{ $labels.id }} has lost quorum"
+        - alert: ProxmoxStorageFull
+          expr: >-
+            pve_disk_usage_bytes{id=~"storage/.*"} / pve_disk_size_bytes{id=~"storage/.*"} > 0.8
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Storage {{ $labels.id }} is {{ $value | humanizePercentage }} full"
+        # Start-on-boot is the only record of intent the API carries: a guest
+        # that is meant to run and is not.
+        - alert: ProxmoxGuestDown
+          expr: pve_up{id=~"qemu/.*|lxc/.*"} == 0 and on (id) pve_onboot_status == 1
+          for: 10m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Guest {{ $labels.id }} is not running"

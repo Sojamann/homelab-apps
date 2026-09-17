@@ -1,0 +1,33 @@
+# Both exporters are installed by machine-config -- see its README. The k8s
+# network is default-deny into Trusted; `metrics-allow-proxmox` in network/ is
+# the one hole these two scrapes go through.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: proxmox
+  namespace: monitoring
+spec:
+  jobName: proxmox
+  staticConfigs:
+    - targets:
+        - 10.212.2.151:9100
+      labels:
+        node: titan
+---
+# pve-exporter reports the whole cluster through whichever node's API it asks,
+# so this scrapes one host only -- every other node would repeat the series.
+# `target=localhost` is the API the exporter itself calls.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: pve
+  namespace: monitoring
+spec:
+  jobName: pve
+  metricsPath: /pve
+  params:
+    target:
+      - localhost
+  staticConfigs:
+    - targets:
+        - 10.212.2.151:9221
