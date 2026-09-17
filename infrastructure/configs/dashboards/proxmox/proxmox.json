@@ -174,10 +174,10 @@
       "options": { "showHeader": true, "sortBy": [ { "displayName": "Name", "desc": false } ] },
       "targets": [
         { "refId": "A", "instant": true, "format": "table", "expr": "pve_up{id=~\"qemu/.*|lxc/.*\"} * on (id) group_left (name, node, type) pve_guest_info" },
-        { "refId": "B", "instant": true, "format": "table", "expr": "pve_cpu_usage_ratio{id=~\"qemu/.*|lxc/.*\"}" },
-        { "refId": "C", "instant": true, "format": "table", "expr": "pve_memory_usage_bytes{id=~\"qemu/.*|lxc/.*\"}" },
-        { "refId": "D", "instant": true, "format": "table", "expr": "pve_memory_size_bytes{id=~\"qemu/.*|lxc/.*\"}" },
-        { "refId": "E", "instant": true, "format": "table", "expr": "pve_disk_size_bytes{id=~\"qemu/.*|lxc/.*\"}" }
+        { "refId": "B", "instant": true, "format": "table", "expr": "pve_cpu_usage_ratio{id=~\"qemu/.*|lxc/.*\"} * on (id) group_left (name, node, type) pve_guest_info" },
+        { "refId": "C", "instant": true, "format": "table", "expr": "pve_memory_usage_bytes{id=~\"qemu/.*|lxc/.*\"} * on (id) group_left (name, node, type) pve_guest_info" },
+        { "refId": "D", "instant": true, "format": "table", "expr": "pve_memory_size_bytes{id=~\"qemu/.*|lxc/.*\"} * on (id) group_left (name, node, type) pve_guest_info" },
+        { "refId": "E", "instant": true, "format": "table", "expr": "pve_disk_size_bytes{id=~\"qemu/.*|lxc/.*\"} * on (id) group_left (name, node, type) pve_guest_info" }
       ],
       "transformations": [
         { "id": "merge", "options": {} },
