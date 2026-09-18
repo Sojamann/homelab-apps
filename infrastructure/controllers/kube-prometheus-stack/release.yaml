@@ -67,9 +67,17 @@ spec:
           requests: { cpu: 200m, memory: 1Gi }
           limits: { memory: 4Gi }
 
-    # No receiver yet -- alerts are visible, nobody is notified.
     alertmanager:
       alertmanagerSpec:
+        # Every link Alertmanager prints, in the UI and in a notification.
+        externalUrl: https://alertmanager.${app_domain}
+
+        # Mounts the `alerting` ExternalSecret at
+        # /etc/alertmanager/secrets/alerting/<key>. Both credentials are read
+        # from those files below, so neither is in this public repo.
+        secrets:
+          - alerting
+
         storage:
           volumeClaimTemplate:
             spec:
@@ -81,6 +89,84 @@ spec:
         resources:
           requests: { cpu: 10m, memory: 50Mi }
           limits: { memory: 256Mi }
+
+      # One Telegram group carries everything; the severity only decides
+      # whether the phone makes a sound. `inhibit_rules` and `templates` stay
+      # at the chart's defaults -- the first already mutes a warning that a
+      # critical of the same alertname and namespace explains.
+      config:
+        route:
+          group_by: [alertname, cluster, namespace]
+          group_wait: 30s
+          group_interval: 5m
+          repeat_interval: 12h
+          receiver: telegram
+
+          # First match wins, so Watchdog is caught before the severity route.
+          # It is `severity: none` and fires permanently by design: left to the
+          # default it would post the same alert into the chat twice a day.
+          routes:
+            - receiver: heartbeat
+              matchers: ['alertname = "Watchdog"']
+              group_wait: 0s
+              repeat_interval: 5m
+            - receiver: telegram-critical
+              matchers: ['severity = "critical"']
+              group_wait: 10s
+              repeat_interval: 4h
+
+        # The two Telegram receivers differ in one field. Spelled out twice
+        # rather than shared by a YAML anchor: this map is parsed by kustomize,
+        # by envsubst and by Helm before Alertmanager ever sees it, and an
+        # alias surviving all three is not worth six saved lines.
+        receivers:
+          # Silent: delivered and kept in the chat, no sound. A notification
+          # per warning is how you learn to swipe warnings away, which is worse
+          # than not sending them.
+          - name: telegram
+            telegram_configs:
+              - bot_token_file: /etc/alertmanager/secrets/alerting/telegram-bot-token
+                chat_id: ${telegram_chat_id}
+                parse_mode: HTML
+                message: '{{ template "telegram.lab.message" . }}'
+                disable_notifications: true
+
+          - name: telegram-critical
+            telegram_configs:
+              - bot_token_file: /etc/alertmanager/secrets/alerting/telegram-bot-token
+                chat_id: ${telegram_chat_id}
+                parse_mode: HTML
+                message: '{{ template "telegram.lab.message" . }}'
+                disable_notifications: false
+
+          # Watchdog turned into a heartbeat. When the pings stop -- because
+          # Prometheus, the cluster or the WAN is what broke -- whoever hosts
+          # the URL is what notices, from outside the lab. Nothing inside it
+          # can, which is the whole point, so the service behind the URL is
+          # deliberately not named anywhere in here.
+          - name: heartbeat
+            webhook_configs:
+              - url_file: /etc/alertmanager/secrets/alerting/heartbeat-url
+                send_resolved: false
+
+      # HTML, not MarkdownV2: Telegram rejects a message whose markup does not
+      # parse, and the alert is then lost to a log line nobody reads.
+      # MarkdownV2 needs a dozen characters escaped, several of which label
+      # values carry routinely; HTML cares about three.
+      templateFiles:
+        telegram.tmpl: |-
+          {{ define "telegram.lab.message" -}}
+          {{ if eq .Status "firing" }}🔴 {{ .Alerts.Firing | len }} firing{{ else }}✅ resolved{{ end }}
+          {{ range .Alerts }}
+          <b>{{ .Labels.alertname }}</b> [{{ .Labels.severity }}]
+          {{ with .Annotations.summary }}{{ . }}
+          {{ end }}{{ with .Annotations.description }}{{ . }}
+          {{ end }}{{ with .Labels.namespace }}ns: {{ . }}
+          {{ end }}{{ with .Labels.node }}node: {{ . }}
+          {{ end }}{{ with .Labels.instance }}instance: {{ . }}
+          {{ end }}{{ end }}
+          <a href="https://alertmanager.${app_domain}">silence</a> · <a href="https://grafana.${app_domain}">grafana</a>
+          {{- end }}
 
     # Stateless: no PVC, dashboards come from ConfigMaps labelled
     # `grafana_dashboard: "1"` in any namespace. UI edits are lost on restart.
