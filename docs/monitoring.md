@@ -85,5 +85,10 @@ URL. Both are written into OpenBao by the platform layer; the bot
 token and the URL are mounted as files, the chat id travels in `cluster-vars`
 because it is no credential but names a private group.
 
+Every rule in `infrastructure/configs` carries `origin: lab`, which the ~134 the
+chart ships do not. It is how you find your own among them -- `label:origin=lab`
+in Grafana, `origin="lab"` in Alertmanager -- and a matcher away from routing
+them differently.
+
 Grafana's own alerting is unused. One alerting engine, and it is Prometheus:
 Grafana is stateless here, so a rule made in its UI is gone on the next restart.

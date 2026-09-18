@@ -1,3 +1,6 @@
+# `origin: lab` on every rule here: it is what separates these from the ~134 the
+# chart ships. Grafana filters on `label:origin=lab`, Alertmanager matches on it,
+# and it is a matcher away from routing this lab's own alerts differently.
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -12,6 +15,7 @@ spec:
           for: 5m
           labels:
             severity: critical
+            origin: lab
           annotations:
             summary: "{{ $labels.job }} exporter on {{ $labels.instance }} unreachable"
         - alert: ProxmoxQuorumLost
@@ -19,6 +23,7 @@ spec:
           for: 5m
           labels:
             severity: critical
+            origin: lab
           annotations:
             summary: "Cluster {{ $labels.id }} has lost quorum"
         - alert: ProxmoxStorageFull
@@ -27,6 +32,7 @@ spec:
           for: 15m
           labels:
             severity: warning
+            origin: lab
           annotations:
             summary: "Storage {{ $labels.id }} is {{ $value | humanizePercentage }} full"
         # Start-on-boot is the only record of intent the API carries: a guest
@@ -36,5 +42,6 @@ spec:
           for: 10m
           labels:
             severity: warning
+            origin: lab
           annotations:
             summary: "Guest {{ $labels.id }} is not running"

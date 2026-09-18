@@ -1,3 +1,6 @@
+# `origin: lab` on every rule here: it is what separates these from the ~134 the
+# chart ships. Grafana filters on `label:origin=lab`, Alertmanager matches on it,
+# and it is a matcher away from routing this lab's own alerts differently.
 apiVersion: monitoring.coreos.com/v1
 kind: PrometheusRule
 metadata:
@@ -12,6 +15,7 @@ spec:
           for: 5m
           labels:
             severity: critical
+            origin: lab
           annotations:
             summary: NAS node-exporter unreachable
         - alert: NasPoolNotOnline
@@ -19,6 +23,7 @@ spec:
           for: 5m
           labels:
             severity: critical
+            origin: lab
           annotations:
             summary: "Pool {{ $labels.zpool }} is not ONLINE"
         # Fed by the TrueNAS cron job; 80% is where ZFS starts to slow down.
@@ -27,5 +32,6 @@ spec:
           for: 15m
           labels:
             severity: warning
+            origin: lab
           annotations:
             summary: "Pool {{ $labels.pool }} is {{ $value | humanizePercentage }} full"
