@@ -55,7 +55,7 @@ spec:
 
           # Request covers the i18n CLIP model (~3Gi) resident. The memory
           # limit is the one exception on this node: an ML spike gets this pod
-          # OOM-killed instead of evicting paperless or a database.
+          # OOM-killed instead of evicting a database.
           resources:
             requests:
               cpu: 500m

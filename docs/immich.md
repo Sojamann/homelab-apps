@@ -61,8 +61,8 @@ by rename.
 
 ## Known gaps
 
-- **No database backup.** Same as paperless. `fast` is one unmirrored NVMe with
-  no snapshot task. Immich's own backup job needs superuser (`pg_dumpall`),
+- **No database backup.** `fast` is one unmirrored NVMe with no snapshot
+  task. Immich's own backup job needs superuser (`pg_dumpall`),
   which CNPG does not hand out, so it stays off.
 - **Bootstrap reports failed once.** `immich-server` crash-loops until the
   `Database` has created the extensions; the Kustomization's retry clears it.

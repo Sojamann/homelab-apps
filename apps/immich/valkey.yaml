@@ -1,5 +1,5 @@
-# Job queue. Per-app and in-memory, as for paperless: lost jobs are re-queued
-# from the "Missing" buttons in the admin job page.
+# Job queue. Per-app and in-memory: lost jobs are re-queued from the
+# "Missing" buttons in the admin job page.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
