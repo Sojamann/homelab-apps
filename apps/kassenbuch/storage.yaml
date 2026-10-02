@@ -1,0 +1,17 @@
+# All of /data -- the SQLite db, Belege and exports -- on `bulk`: bookkeeping
+# records kept for ten years belong on the mirror and in the NAS snapshots,
+# and one user does not need NVMe. SQLite (WAL) on NFS holds because there is
+# one pod on one node and the mount is NFSv4.1 with its own locking; a ZFS
+# snapshot is atomic, so db and -wal are caught together.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: kassenbuch-data
+  namespace: kassenbuch
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: bulk
+  resources:
+    # A label -- NFS directory, not enforced.
+    requests:
+      storage: 10Gi

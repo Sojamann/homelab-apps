@@ -1,0 +1,82 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kassenbuch
+  namespace: kassenbuch
+spec:
+  replicas: 1
+  # SQLite has one writer.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: kassenbuch
+  template:
+    metadata:
+      labels:
+        app: kassenbuch
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: kassenbuch
+          image: ghcr.io/sojamann/kassenbuch:0.1.0
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            # The session cookie is Secure and form actions are CSRF-checked
+            # against it.
+            - name: ORIGIN
+              value: https://kassenbuch.${app_domain}
+            - name: KASSENBUCH_PASSWORD_HASH
+              valueFrom:
+                secretKeyRef:
+                  name: kassenbuch
+                  key: password-hash
+
+          # No health endpoint; the login page needs no session.
+          # Migrations run on the first open.
+          startupProbe:
+            httpGet: { path: /login, port: http }
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            httpGet: { path: /login, port: http }
+            periodSeconds: 30
+          livenessProbe:
+            httpGet: { path: /login, port: http }
+            periodSeconds: 30
+            failureThreshold: 5
+
+          # No limits: image decoding and Typst burst on upload and export only.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: kassenbuch-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kassenbuch
+  namespace: kassenbuch
+spec:
+  selector:
+    app: kassenbuch
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http

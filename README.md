@@ -26,6 +26,7 @@ graph TD
   APPS -.->|dependsOn| CFG
 
   APPS -->|applies| IM["immich<br/>./apps/immich<br/>prune - wait"]
+  APPS -->|applies| KB["kassenbuch<br/>./apps/kassenbuch<br/>prune - wait"]
 ```
 > post-build applies `cluster-vars` secret providing the domain
 
@@ -54,9 +55,10 @@ Every app is its own flux `Kustomization` so it is reconsiled seperately and
 is deployed in it's own namespace which may hold the app itself together
 with secrets and storage definitions.
 
-| Name   | Description   | Domain                 | Docs                     |
-|--------|---------------|------------------------|--------------------------|
-| immich | photo library | `photos.${app_domain}` | [link](./docs/immich.md) |
+| Name       | Description              | Domain                     | Docs                         |
+|------------|--------------------------|----------------------------|------------------------------|
+| immich     | photo library            | `photos.${app_domain}`     | [link](./docs/immich.md)     |
+| kassenbuch | Kassenbuch of the Verein | `kassenbuch.${app_domain}` | [link](./docs/kassenbuch.md) |
 
 
 - **`enableServiceLinks: false`, always.** The kubelet injects a Docker-link
