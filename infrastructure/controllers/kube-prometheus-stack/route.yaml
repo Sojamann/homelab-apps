@@ -15,7 +15,7 @@ spec:
           port: 80
 ---
 # Alertmanager has no authentication of its own, so this is every LAN and
-# NetBird peer being able to silence alerts. Taken on purpose: silencing a
+# tailnet device being able to silence alerts. Taken on purpose: silencing a
 # known issue from a phone is the operation you want at 3am, and a port-forward
 # from a laptop is not available then.
 apiVersion: gateway.networking.k8s.io/v1

@@ -5,7 +5,7 @@ for the cluster itself.
 
 Grafana is `grafana.${app_domain}`: anonymous visitors are Viewers, the admin
 is in OpenBao (`bao kv get kv/monitoring/grafana`). Alertmanager is
-`alertmanager.${app_domain}` with no auth at all -- every LAN and NetBird peer
+`alertmanager.${app_domain}` with no auth at all -- every LAN and tailnet device
 can silence an alert, which is the price of being able to silence one from a
 phone. Prometheus has neither auth nor route:
 

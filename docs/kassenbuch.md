@@ -3,7 +3,7 @@
 Single-user Kassenbuch for the Verein. Built in the private
 [kassenbuch](https://github.com/Sojamann/kassenbuch) repo; the image
 `ghcr.io/sojamann/kassenbuch` is public, so there is no pull secret.
-LAN and NetBird only, like everything behind the gateway.
+LAN and tailnet only, like everything behind the gateway.
 
 ```mermaid
 graph TD
