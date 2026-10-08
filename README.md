@@ -25,7 +25,6 @@ graph TD
   CFG -.->|dependsOn| INFRA
   APPS -.->|dependsOn| CFG
 
-  APPS -->|applies| IM["immich<br/>./apps/immich<br/>prune - wait"]
   APPS -->|applies| KB["kassenbuch<br/>./apps/kassenbuch<br/>prune - wait"]
 ```
 > post-build applies `cluster-vars` secret providing the domain
@@ -57,7 +56,6 @@ with secrets and storage definitions.
 
 | Name       | Description              | Domain                     | Docs                         |
 |------------|--------------------------|----------------------------|------------------------------|
-| immich     | photo library            | `photos.${app_domain}`     | [link](./docs/immich.md)     |
 | kassenbuch | Kassenbuch of the Verein | `kassenbuch.${app_domain}` | [link](./docs/kassenbuch.md) |
 
 
