@@ -1,8 +1,8 @@
 # Kassenbuch
 
 Single-user Kassenbuch for the Verein. Built in the private
-[kassenbuch](https://github.com/Sojamann/kassenbuch) repo; the image
-`ghcr.io/sojamann/kassenbuch` is public, so there is no pull secret.
+repo and pushed by hand to `registry.${app_domain}/kassenbuch`
+([zot](./zot.md)), which allows anonymous pulls, so there is no pull secret.
 LAN and tailnet only, like everything behind the gateway.
 
 ```mermaid
@@ -46,7 +46,7 @@ OpenBao at `kv/kassenbuch/app`.
 Set or rotate:
 
 ```sh
-docker run --rm -it ghcr.io/sojamann/kassenbuch:<tag> node scripts/hash-password.js
+docker run --rm -it registry.<app_domain>/kassenbuch:<tag> node scripts/hash-password.js
 ansible-vault edit secrets/vault.yml      # kassenbuch_password_hash: <the quoted value>
 mise run platform apply
 kubectl -n kassenbuch annotate externalsecret kassenbuch force-sync=$(date +%s) --overwrite

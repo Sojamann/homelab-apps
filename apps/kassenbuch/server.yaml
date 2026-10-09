@@ -25,7 +25,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: kassenbuch
-          image: ghcr.io/sojamann/kassenbuch:1.0.0
+          image: registry.${app_domain}/kassenbuch:1.0.0
           ports:
             - name: http
               containerPort: 3000
