@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - secret.yaml
+  - storage.yaml
+  - server.yaml
+  - route.yaml
+# zot reads its config once at start; the hashed name rolls the pod on change.
+configMapGenerator:
+  - name: zot
+    namespace: zot
+    files:
+      - config.json

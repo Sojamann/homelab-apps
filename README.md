@@ -45,9 +45,10 @@ chart that defines its kind:
 |-----------------------|--------------------|---------------|--------------------------------|------------------------------|
 | cloudnative-pg        | postgres operator  | `cnpg-system` | chart 0.29.0 (operator 1.30)   |                              |
 | kube-prometheus-stack | metrics + grafana  | `monitoring`  | chart 91.3.0 (operator 0.94.0) | [link](./docs/monitoring.md) |
+| zot                   | OCI registry       | `zot`         | v2.1.22                        | [link](./docs/zot.md)        |
 
 Grafana is served at `grafana.${app_domain}`, Alertmanager at
-`alertmanager.${app_domain}`.
+`alertmanager.${app_domain}`, the registry at `registry.${app_domain}`.
 
 ## Apps
 Every app is its own flux `Kustomization` so it is reconsiled seperately and

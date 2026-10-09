@@ -1,0 +1,15 @@
+# On `bulk`: losing the registry means re-pushing every own image before its
+# app can restart, so it goes on the mirror. Pulls are rare and containerd
+# caches them, so NFS speed does not matter.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: zot-data
+  namespace: zot
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: bulk
+  resources:
+    # A label -- NFS directory, not enforced.
+    requests:
+      storage: 20Gi
