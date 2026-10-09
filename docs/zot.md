@@ -20,7 +20,7 @@ graph TD
 
   BAO["OpenBao<br/>kv/zot/registry"] -.->|ClusterSecretStore openbao| ES
   RT -.->|parentRef| GW["Gateway lab<br/>ns gateway - platform layer"]
-  WS["workstation<br/>docker push"] -->|push user| RT
+  WS["workstation<br/>mise run image"] -->|push user| RT
   NODE["Talos containerd"] -->|anonymous pull| RT
 
   classDef ext fill:#eee,stroke:#999,stroke-dasharray:3 3;
@@ -38,15 +38,37 @@ Anonymous read means no `imagePullSecret` in any namespace. Nodes pull through
 the gateway like any client: the wildcard cert is Let's Encrypt, so containerd
 trusts it with no Talos config.
 
-The password is generated in `platform_secrets.tf` and lives only in OpenBao:
+The password is generated in `platform_secrets.tf` and lives only in OpenBao,
+at `kv/zot/registry`. Read it out with the root token once per workstation:
 
 ```sh
-kubectl -n openbao exec openbao-0 -- bao kv get -field=password kv/zot/registry \
-  | docker login registry.<app_domain> -u push --password-stdin
+crane auth login registry.<app_domain> -u push --password-stdin
 ```
 
 `compat: docker2s2` is on so a plain `docker push` (Docker-format manifests)
 is accepted, not only OCI ones.
+
+## Releasing
+
+Builds happen in the app's repo, pushes happen here -- the app repos know
+nothing about this registry and hold no credential for it.
+
+```sh
+# in the app repo: clean tree, tagged HEAD, tests, linux/amd64 into local docker
+mise run release                       # -> kassenbuch:1.0.1
+
+# in lab
+mise run image kassenbuch 1.0.1        # push to zot, bump flux/apps/kassenbuch
+git add <...> && mise run save "kassenbuch: 1.0.1"
+```
+
+`image` refuses a non-semver tag (retention would delete it), an image that
+is not `linux/amd64`, and a tag zot already has: a node that pulled it keeps
+its copy, so overwriting would run different code depending on where the pod
+lands. It only rewrites `image: registry.${app_domain}/<app>:` lines, so an app
+moves onto zot by hand once and is bumped by the task from then on.
+
+It pushes with crane and the workstation's own `crane auth login` as `push`.
 
 ## Tags and retention
 
