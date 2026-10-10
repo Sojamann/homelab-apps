@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: supplement-tracker
+  namespace: supplement-tracker
+spec:
+  replicas: 1
+  # SQLite has one writer.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: supplement-tracker
+  template:
+    metadata:
+      labels:
+        app: supplement-tracker
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: supplement-tracker
+          image: registry.${app_domain}/supplement-tracker:1.0.0
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            # Form actions are CSRF-checked against it.
+            - name: ORIGIN
+              value: https://supplements.${app_domain}
+
+          # /healthz runs a query, so it also covers the migrations applied on
+          # start.
+          startupProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 30
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 30
+            failureThreshold: 5
+
+          resources:
+            requests:
+              cpu: 20m
+              memory: 128Mi
+
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: supplement-tracker-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: supplement-tracker
+  namespace: supplement-tracker
+spec:
+  selector:
+    app: supplement-tracker
+  ports:
+    - name: http
+      port: 3000
+      targetPort: http

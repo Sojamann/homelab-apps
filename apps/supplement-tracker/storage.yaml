@@ -1,0 +1,17 @@
+# All of /data -- just the SQLite db -- on `bulk`, so the intake history is on
+# the mirror and in the NAS snapshots; the app has no export of its own.
+# SQLite (WAL) on NFS holds because there is one pod on one node and the mount
+# is NFSv4.1 with its own locking; a ZFS snapshot is atomic, so db and -wal are
+# caught together.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: supplement-tracker-data
+  namespace: supplement-tracker
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: bulk
+  resources:
+    # A label -- NFS directory, not enforced.
+    requests:
+      storage: 1Gi
