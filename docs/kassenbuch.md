@@ -8,11 +8,11 @@ LAN and tailnet only, like everything behind the gateway.
 ```mermaid
 graph TD
   subgraph kb["ns: kassenbuch"]
-    ES["ExternalSecret kassenbuch"] --> SEC[["Secret kassenbuch<br/>password-hash, association-name"]]
+    ES["ExternalSecret kassenbuch"] --> SEC[["Secret kassenbuch<br/>password-hash"]]
     SRV["Deployment kassenbuch<br/>Recreate - uid 1000"]
     SRV --> SVC(["Service kassenbuch:3000"])
     PVC[/"PVC kassenbuch-data<br/>RWX - bulk - 10Gi label"/] -->|/data| SRV
-    SEC -->|KASSENBUCH_PASSWORD_HASH, VEREIN| SRV
+    SEC -->|KASSENBUCH_PASSWORD_HASH| SRV
     RT["HTTPRoute kassenbuch<br/>kassenbuch.$app_domain - timeout 0s"] -->|backendRef| SVC
   end
 
@@ -36,9 +36,7 @@ Restore: scale to 0, copy the directory back out of the NAS snapshot
 
 ## Password
 
-Besides `ORIGIN`, the app reads `KASSENBUCH_PASSWORD_HASH` and `VEREIN`, the
-Verein's name -- kept in the vault as `kassenbuch_association_name` and synced
-the same way, so it stays out of this public repo. The plaintext lives in a
+Besides `ORIGIN`, the app reads `KASSENBUCH_PASSWORD_HASH`. The plaintext lives in a
 password manager; the hash in `secrets/vault.yml` as
 `kassenbuch_password_hash`, from where `platform_secrets.tf` writes it to
 OpenBao at `kv/kassenbuch/app`.

@@ -34,11 +34,6 @@ spec:
             # against it.
             - name: ORIGIN
               value: https://kassenbuch.${app_domain}
-            - name: VEREIN
-              valueFrom:
-                secretKeyRef:
-                  name: kassenbuch
-                  key: association-name
             - name: KASSENBUCH_PASSWORD_HASH
               valueFrom:
                 secretKeyRef:
