@@ -1,0 +1,63 @@
+# ${app_domain} and ${lab_domain} are filled in by Flux postBuild, so a literal
+# dollar sign has to be written $$.
+title: Lab
+subtitle: Dashboard
+header: true
+footer: false
+theme: default
+colorTheme: auto
+
+defaults:
+  layout: columns
+
+# Logos come from homarr-labs/dashboard-icons, pinned to a commit since the
+# repo has no tags.
+
+services:
+  - name: Apps
+    icon: fa-solid fa-house
+    items:
+      - name: Kassenbuch
+        subtitle: Kassenbuch of the Verein
+        icon: fa-solid fa-cash-register
+        url: https://kassenbuch.${app_domain}
+      - name: Supplement Tracker
+        subtitle: Household supplements
+        icon: fa-solid fa-pills
+        url: https://supplements.${app_domain}
+
+  - name: Lab
+    icon: fa-solid fa-flask
+    items:
+      - name: Grafana
+        subtitle: Metrics and dashboards
+        logo: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/grafana.svg
+        url: https://grafana.${app_domain}
+      - name: Alertmanager
+        subtitle: Alerts and silences
+        logo: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/alertmanager.svg
+        url: https://alertmanager.${app_domain}
+      - name: OpenBao
+        subtitle: Workload secrets
+        logo: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/openbao.svg
+        url: https://bao.${app_domain}
+      - name: Zot
+        subtitle: OCI registry
+        logo: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/zot-registry.svg
+        url: https://registry.${app_domain}
+
+  - name: Infra
+    icon: fa-solid fa-server
+    items:
+      - name: Proxmox
+        subtitle: Any node manages the cluster
+        logo: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/proxmox.svg
+        url: https://titan.${lab_domain}:8006
+      - name: NAS
+        subtitle: TrueNAS
+        logo: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/truenas-scale.svg
+        url: https://nas.${lab_domain}
+      - name: Router
+        subtitle: UniFi
+        logo: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/unifi.svg
+        url: https://10.212.1.1
