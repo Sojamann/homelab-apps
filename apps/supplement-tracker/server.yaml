@@ -25,7 +25,7 @@ spec:
         fsGroupChangePolicy: OnRootMismatch
       containers:
         - name: supplement-tracker
-          image: registry.${app_domain}/supplement-tracker:1.0.0
+          image: registry.${app_domain}/supplement-tracker:1.1.0
           ports:
             - name: http
               containerPort: 3000
