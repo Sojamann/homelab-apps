@@ -54,7 +54,8 @@ Grafana is served at `grafana.${app_domain}`, Alertmanager at
 
 ## Updates
 Renovate (`renovate.json`) opens a PR when an `OCIRepository` chart tag or a
-public image has a new release. Merging is deploying -- Flux reconciles `main`.
+public image has a new release that is 3 days old. Merging is deploying --
+Flux reconciles `main`.
 Images in our own zot registry are skipped; `mise run image` bumps those.
 
 ## Apps

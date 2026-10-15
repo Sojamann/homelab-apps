@@ -3,6 +3,10 @@
   "extends": [
     "config:recommended"
   ],
+  "minimumReleaseAge": "3 days",
+  "minimumReleaseAgeBehaviour": "timestamp-optional",
+  "prCreation": "not-pending",
+  "internalChecksAsSuccess": true,
   "flux": {
     "managerFilePatterns": [
       "/\\.ya?ml$/"
