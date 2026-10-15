@@ -79,12 +79,3 @@ pages:
               - controlplaneio-fluxcd/flux-operator
               - fluxcd/flux2
 
-          # Neither publishes GitHub releases; their forum announcements do.
-          - type: rss
-            title: Proxmox & TrueNAS
-            limit: 10
-            feeds:
-              - url: https://forum.proxmox.com/forums/announcements.7/index.rss
-                title: Proxmox
-              - url: https://forums.truenas.com/c/announce/5.rss
-                title: TrueNAS

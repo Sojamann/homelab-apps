@@ -16,10 +16,9 @@ graph TD
 
   RT -.->|parentRef| GW["Gateway lab<br/>ns gateway - platform layer"]
   SRV -->|releases| GH["GitHub API<br/>unauthenticated"]
-  SRV -->|rss| FEEDS["Proxmox + TrueNAS<br/>forum announcements"]
 
   classDef ext fill:#eee,stroke:#999,stroke-dasharray:3 3;
-  class GW,GH,FEEDS ext;
+  class GW,GH ext;
 ```
 
 ## Config
@@ -40,8 +39,8 @@ Fetched server-side, so the pod needs egress to the internet.
 - `releases`: every version the cluster and platform layers pin. Unauthenticated
   GitHub allows 60 requests/hour, plenty for a dozen repos. Past ~20, add a
   token via an `ExternalSecret`.
-- `rss`: Proxmox and TrueNAS publish no GitHub releases, so their forum
-  announcement feeds stand in. Not only releases show up there.
+- Proxmox and TrueNAS publish no GitHub releases, so they are not tracked;
+  their forum announcement feeds were too noisy to be worth a widget.
 
 Compare against the version locals in `cluster/` and `platform/` in the
 parent repo when bumping.
