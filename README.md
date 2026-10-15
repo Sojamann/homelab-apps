@@ -25,7 +25,7 @@ graph TD
   CFG -.->|dependsOn| INFRA
   APPS -.->|dependsOn| CFG
 
-  APPS -->|applies| HM["homer<br/>./apps/homer<br/>prune - wait"]
+  APPS -->|applies| GL["glance<br/>./apps/glance<br/>prune - wait"]
   APPS -->|applies| KB["kassenbuch<br/>./apps/kassenbuch<br/>prune - wait"]
   APPS -->|applies| ST["supplement-tracker<br/>./apps/supplement-tracker<br/>prune - wait"]
 ```
@@ -59,7 +59,7 @@ with secrets and storage definitions.
 
 | Name               | Description                    | Domain                      | Docs                                 |
 |--------------------|--------------------------------|-----------------------------|--------------------------------------|
-| homer              | Link dashboard of the lab      | `dash.${app_domain}`        | [link](./docs/homer.md)              |
+| glance             | Lab start page, release feed   | `dash.${app_domain}`        | [link](./docs/glance.md)             |
 | kassenbuch         | Kassenbuch of the Verein       | `kassenbuch.${app_domain}`  | [link](./docs/kassenbuch.md)         |
 | supplement-tracker | Household supplement tracker   | `supplements.${app_domain}` | [link](./docs/supplement-tracker.md) |
 

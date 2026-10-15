@@ -1,0 +1,90 @@
+# ${app_domain} and ${lab_domain} are filled in by Flux postBuild, so a literal
+# dollar sign has to be written $$.
+
+# Logos come from homarr-labs/dashboard-icons, pinned to a commit since the
+# repo has no tags.
+
+pages:
+  - name: Lab
+    columns:
+      - size: full
+        widgets:
+          - type: bookmarks
+            groups:
+              - title: Apps
+                links:
+                  - title: Kassenbuch
+                    description: Kassenbuch of the Verein
+                    icon: mdi:cash-register
+                    url: https://kassenbuch.${app_domain}
+                  - title: Supplement Tracker
+                    description: Household supplements
+                    icon: mdi:pill
+                    url: https://supplements.${app_domain}
+
+              - title: Lab
+                links:
+                  - title: Grafana
+                    description: Metrics and dashboards
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/grafana.svg
+                    url: https://grafana.${app_domain}
+                  - title: Alertmanager
+                    description: Alerts and silences
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/alertmanager.svg
+                    url: https://alertmanager.${app_domain}
+                  - title: OpenBao
+                    description: Workload secrets
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/openbao.svg
+                    url: https://bao.${app_domain}
+                  - title: Zot
+                    description: OCI registry
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/zot-registry.svg
+                    url: https://registry.${app_domain}
+
+              - title: Infra
+                links:
+                  - title: Proxmox
+                    description: Any node manages the cluster
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/proxmox.svg
+                    url: https://titan.${lab_domain}:8006
+                  - title: NAS
+                    description: TrueNAS
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/truenas-scale.svg
+                    url: https://nas.${lab_domain}
+                  - title: Router
+                    description: UniFi
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/unifi.svg
+                    url: https://10.212.1.1
+
+      - size: full
+        widgets:
+          # What the cluster and platform layers pin. ESO's latest release
+          # alternates between app and chart tags; both carry the same version.
+          # democratic-csi only releases its chart; snapshot-controller's chart
+          # lives in a multi-chart repo, so the app it packages stands in.
+          - type: releases
+            show-source-icon: true
+            limit: 20
+            repositories:
+              - siderolabs/talos
+              - kubernetes/kubernetes
+              - cilium/cilium
+              - kubernetes-sigs/gateway-api
+              - external-secrets/external-secrets
+              - openbao/openbao
+              - cert-manager/cert-manager
+              - kubernetes-csi/csi-driver-nfs
+              - democratic-csi/charts
+              - kubernetes-csi/external-snapshotter
+              - controlplaneio-fluxcd/flux-operator
+              - fluxcd/flux2
+
+          # Neither publishes GitHub releases; their forum announcements do.
+          - type: rss
+            title: Proxmox & TrueNAS
+            limit: 10
+            feeds:
+              - url: https://forum.proxmox.com/forums/announcements.7/index.rss
+                title: Proxmox
+              - url: https://forums.truenas.com/c/announce/5.rss
+                title: TrueNAS

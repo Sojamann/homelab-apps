@@ -1,8 +1,8 @@
 apiVersion: gateway.networking.k8s.io/v1
 kind: HTTPRoute
 metadata:
-  name: homer
-  namespace: homer
+  name: glance
+  namespace: glance
 spec:
   parentRefs:
     - name: lab
@@ -11,5 +11,5 @@ spec:
     - dash.${app_domain}
   rules:
     - backendRefs:
-        - name: homer
+        - name: glance
           port: 8080

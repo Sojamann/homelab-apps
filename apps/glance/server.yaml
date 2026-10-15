@@ -1,17 +1,17 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: homer
-  namespace: homer
+  name: glance
+  namespace: glance
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: homer
+      app: glance
   template:
     metadata:
       labels:
-        app: homer
+        app: glance
     spec:
       enableServiceLinks: false
       securityContext:
@@ -19,20 +19,16 @@ spec:
         runAsUser: 1000
         runAsGroup: 1000
       containers:
-        - name: homer
-          image: b4bz/homer:v26.08.3
+        - name: glance
+          image: glanceapp/glance:v0.8.6
           ports:
             - name: http
               containerPort: 8080
-          env:
-            # The image's own assets stay; only config.yml is mounted over them.
-            - name: INIT_ASSETS
-              value: "0"
           readinessProbe:
-            httpGet: { path: /, port: http }
+            httpGet: { path: /api/healthz, port: http }
             periodSeconds: 30
           livenessProbe:
-            httpGet: { path: /, port: http }
+            httpGet: { path: /api/healthz, port: http }
             periodSeconds: 30
             failureThreshold: 5
           resources:
@@ -41,21 +37,21 @@ spec:
               memory: 32Mi
           volumeMounts:
             - name: config
-              mountPath: /www/assets/config.yml
-              subPath: config.yml
+              mountPath: /app/config
+              readOnly: true
       volumes:
         - name: config
           configMap:
-            name: homer-config
+            name: glance-config
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: homer
-  namespace: homer
+  name: glance
+  namespace: glance
 spec:
   selector:
-    app: homer
+    app: glance
   ports:
     - name: http
       port: 8080
