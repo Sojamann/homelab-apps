@@ -52,6 +52,11 @@ chart that defines its kind:
 Grafana is served at `grafana.${app_domain}`, Alertmanager at
 `alertmanager.${app_domain}`, the registry at `registry.${app_domain}`.
 
+## Updates
+Renovate (`renovate.json`) opens a PR when an `OCIRepository` chart tag or a
+public image has a new release. Merging is deploying -- Flux reconciles `main`.
+Images in our own zot registry are skipped; `mise run image` bumps those.
+
 ## Apps
 Every app is its own flux `Kustomization` so it is reconsiled seperately and
 is deployed in it's own namespace which may hold the app itself together
