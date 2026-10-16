@@ -1,0 +1,85 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pocket-id
+  namespace: pocket-id
+spec:
+  replicas: 1
+  # SQLite has one writer.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: pocket-id
+  template:
+    metadata:
+      labels:
+        app: pocket-id
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: pocket-id
+          # distroless: no shell, but `kubectl exec ... /app/pocket-id
+          # one-time-access-token <user>` still works.
+          image: ghcr.io/pocket-id/pocket-id:v2.18.0-distroless
+          ports:
+            - name: http
+              containerPort: 1411
+          env:
+            # Passkeys are bound to this origin; changing it orphans them.
+            - name: APP_URL
+              value: https://login.${app_domain}
+            - name: ENCRYPTION_KEY_FILE
+              value: /etc/pocket-id/encryption-key
+            # Only the client IP in the audit log rests on this.
+            - name: TRUST_PROXY
+              value: "true"
+            - name: ANALYTICS_DISABLED
+              value: "true"
+          startupProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 30
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 30
+            failureThreshold: 5
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+          volumeMounts:
+            - name: key
+              mountPath: /etc/pocket-id
+              readOnly: true
+            - name: data
+              mountPath: /app/data
+      volumes:
+        - name: key
+          secret:
+            secretName: pocket-id
+        - name: data
+          persistentVolumeClaim:
+            claimName: pocket-id-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: pocket-id
+  namespace: pocket-id
+spec:
+  selector:
+    app: pocket-id
+  ports:
+    - name: http
+      port: 1411
+      targetPort: http

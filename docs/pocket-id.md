@@ -1,0 +1,67 @@
+# Pocket ID
+
+OIDC provider for the lab, passkeys only. An extra way in, not the only one:
+every app keeps its own admin login as break-glass, so Pocket ID being down
+locks nobody out. Served at `login.${app_domain}`, LAN and tailnet only.
+
+```mermaid
+graph TD
+  subgraph pid["ns: pocket-id"]
+    ES["ExternalSecret pocket-id"] --> SEC[["Secret pocket-id<br/>encryption-key"]]
+    SRV["Deployment pocket-id<br/>Recreate - uid 1000"]
+    SRV --> SVC(["Service pocket-id:1411"])
+    PVC[/"PVC pocket-id-data<br/>RWX - bulk - 1Gi label"/] -->|/app/data| SRV
+    SEC -->|ENCRYPTION_KEY_FILE| SRV
+    RT["HTTPRoute pocket-id<br/>login.$app_domain"] -->|backendRef| SVC
+  end
+
+  BAO["OpenBao<br/>kv/pocket-id/app"] -.->|ClusterSecretStore openbao| ES
+  RT -.->|parentRef| GW["Gateway lab<br/>ns gateway - platform layer"]
+
+  classDef ext fill:#eee,stroke:#999,stroke-dasharray:3 3;
+  class GW,BAO ext;
+```
+
+## Storage
+
+One `bulk` PVC for `/app/data`: `pocket-id.db` (SQLite) and uploads. Losing
+it means every passkey enrolled again and every client secret rotated, so it
+sits on the mirror and in the NAS snapshots. Restore as for
+[kassenbuch](./kassenbuch.md#storage).
+
+The encryption key is generated in `platform_secrets.tf`; the database is
+unreadable without it, and the tofu state is its backup.
+
+## First start
+
+`/setup` creates the first admin -- whoever opens it first. Do it right after
+the first deploy.
+
+## Users
+
+No signups and no SMTP. Users and groups are created in the admin UI; each
+person gets a one-time login link and enrolls a passkey with it.
+
+| Group       | Meaning                       |
+|-------------|-------------------------------|
+| `admins`    | admin in the apps that map it |
+| `household` | everyone else                 |
+
+A lost passkey: issue a new one-time link. Your own admin passkey lost:
+
+```sh
+kubectl -n pocket-id exec deploy/pocket-id -- /app/pocket-id one-time-access-token <username>
+```
+
+## Clients
+
+Registered by hand in the admin UI. The secret goes to OpenBao only when the
+app reads its OIDC settings from config rather than its own database:
+
+ansible vault -> `platform_secrets.tf` -> `kv/<ns>/<app>` -> `ExternalSecret`
+
+Losing a client secret costs a re-registration, not access.
+
+## Updates
+
+The image tag is pinned; Renovate proposes bumps.

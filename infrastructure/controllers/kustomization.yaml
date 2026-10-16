@@ -11,4 +11,5 @@ kind: Kustomization
 resources:
   - cloudnative-pg
   - kube-prometheus-stack
+  - pocket-id
   - zot

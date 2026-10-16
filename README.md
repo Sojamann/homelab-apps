@@ -47,10 +47,12 @@ chart that defines its kind:
 |-----------------------|--------------------|---------------|--------------------------------|------------------------------|
 | cloudnative-pg        | postgres operator  | `cnpg-system` | chart 0.29.0 (operator 1.30)   |                              |
 | kube-prometheus-stack | metrics + grafana  | `monitoring`  | chart 91.3.0 (operator 0.94.0) | [link](./docs/monitoring.md) |
+| pocket-id             | OIDC provider      | `pocket-id`   | v2.18.0                        | [link](./docs/pocket-id.md)  |
 | zot                   | OCI registry       | `zot`         | v2.1.22                        | [link](./docs/zot.md)        |
 
 Grafana is served at `grafana.${app_domain}`, Alertmanager at
-`alertmanager.${app_domain}`, the registry at `registry.${app_domain}`.
+`alertmanager.${app_domain}`, the registry at `registry.${app_domain}`, Pocket
+ID at `login.${app_domain}`.
 
 ## Updates
 Renovate (`renovate.json`) opens a PR when an `OCIRepository` chart tag or a

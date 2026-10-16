@@ -1,0 +1,15 @@
+# On `bulk`: losing it means every passkey enrolled again and every client
+# secret rotated, so it goes on the mirror and in the NAS snapshots. SQLite on
+# NFS holds for the same reason as kassenbuch's: one pod, NFSv4.1 locking.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pocket-id-data
+  namespace: pocket-id
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: bulk
+  resources:
+    # A label -- NFS directory, not enforced.
+    requests:
+      storage: 1Gi
