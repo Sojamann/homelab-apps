@@ -26,7 +26,13 @@ graph TD
 
 One `bulk` PVC for `/app/data`: `pocket-id.db` (SQLite) and uploads. Losing
 it means every passkey enrolled again and every client secret rotated, so it
-sits on the mirror and in the NAS snapshots. Restore as for
+sits on the mirror and in the NAS snapshots.
+
+Pocket ID warns against SQLite on NFS; the warning is dismissed on purpose.
+What makes it hold: one pod, one writer, NFSv4.1 locking, and
+`journal_mode(DELETE)` instead of WAL, so no shared-memory file depends on
+the mount. A ZFS snapshot is atomic, so a hot journal is caught with the db
+and rolled back on open. Restore as for
 [kassenbuch](./kassenbuch.md#storage).
 
 The encryption key is generated in `platform_secrets.tf`; the database is
