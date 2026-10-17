@@ -175,12 +175,30 @@ spec:
       defaultDashboardsEnabled: false
       admin:
         existingSecret: grafana-admin
+      envFromSecret: grafana-oidc
       grafana.ini:
         server:
           root_url: https://grafana.${app_domain}
         auth.anonymous:
           enabled: true
           org_role: Viewer
+        # Pocket ID, beside the admin form rather than instead of it: the form
+        # is break-glass, so no auto_login. Client id and secret arrive as
+        # GF_AUTH_GENERIC_OAUTH_* from `grafana-oidc`.
+        auth.generic_oauth:
+          enabled: true
+          name: Pocket ID
+          allow_sign_up: true
+          # offline_access: without it no refresh token, and the session ends
+          # with the hour-long access token instead of Grafana's own 7d.
+          scopes: openid email profile groups offline_access
+          auth_url: https://login.${app_domain}/authorize
+          token_url: https://login.${app_domain}/api/oidc/token
+          api_url: https://login.${app_domain}/api/oidc/userinfo
+          use_pkce: true
+          use_refresh_token: true
+          login_attribute_path: preferred_username
+          role_attribute_path: contains(groups[*], 'admins') && 'Admin' || 'Viewer'
         # Grafana's sqlite is on an emptyDir. WAL lets the readers and the
         # dashboard sidecar's writes overlap instead of returning SQLITE_BUSY.
         database:

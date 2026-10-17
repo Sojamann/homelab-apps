@@ -3,8 +3,11 @@
 kube-prometheus-stack: Prometheus, Alertmanager and Grafana, plus the exporters
 for the cluster itself.
 
-Grafana is `grafana.${app_domain}`: anonymous visitors are Viewers, the admin
-is in OpenBao (`bao kv get kv/monitoring/grafana`). Alertmanager is
+Grafana is `grafana.${app_domain}`: anonymous visitors are Viewers, "Sign in
+with Pocket ID" maps the `admins` group to Admin and everyone else to Viewer,
+and the admin form stays as break-glass -- the admin is in OpenBao
+(`bao kv get kv/monitoring/grafana`). Sessions die with the pod, as the
+emptyDir does. Alertmanager is
 `alertmanager.${app_domain}` with no auth at all -- every LAN and tailnet device
 can silence an alert, which is the price of being able to silence one from a
 phone. Prometheus has neither auth nor route:
@@ -20,8 +23,10 @@ graph TD
     KSM["kube-state-metrics"]
     SEC[["ExternalSecret grafana-admin<br/>kv/monitoring/grafana"]]
     SECA[["ExternalSecret alerting<br/>kv/monitoring/alerting"]]
+    SECO[["ExternalSecret grafana-oidc<br/>kv/monitoring/grafana-oidc"]]
     OP -->|manages| PROM & AM
     SEC --> GR
+    SECO -->|GF_AUTH_GENERIC_OAUTH_*| GR
     SECA -->|mounted as files| AM
     GR -->|queries| PROM
     PROM -->|alerts| AM
@@ -40,6 +45,7 @@ graph TD
   AM -->|critical: sound<br/>everything else: silent| TG["Telegram group"]
   AM -->|Watchdog, every 5m| HB["heartbeat<br/>somewhere outside the lab"]
 
+  GR -->|OIDC| PID["Pocket ID<br/>login.app_domain - see pocket-id.md"]
   GW["Gateway lab"] -->|grafana.app_domain| GR
   GW -->|alertmanager.app_domain| AM
 ```
