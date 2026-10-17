@@ -63,6 +63,15 @@ ansible vault -> `platform_secrets.tf` -> `kv/<ns>/<app>` -> `ExternalSecret`
 
 Losing a client secret costs a re-registration, not access.
 
+| Client  | Groups              | Configured in                                        | Break-glass  |
+|---------|---------------------|------------------------------------------------------|--------------|
+| Grafana | `admins`, `household` | [monitoring](./monitoring.md)                      | admin form   |
+| OpenBao | `admins`            | `platform_openbao.tf`, see platform/README.md        | root token   |
+| Proxmox | `admins`            | by hand, see machines/proxmox.md                     | `root@pam`   |
+| PBS     | `admins`            | by hand, see guests/README.md                        | `root@pam`   |
+
+TrueNAS has no OIDC login.
+
 ## Updates
 
 The image tag is pinned; Renovate proposes bumps.

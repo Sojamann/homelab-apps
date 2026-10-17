@@ -39,7 +39,7 @@ the gateway like any client: the wildcard cert is Let's Encrypt, so containerd
 trusts it with no Talos config.
 
 The password is generated in `platform_secrets.tf` and lives only in OpenBao,
-at `kv/zot/registry`. Read it out with the root token once per workstation:
+at `kv/zot/registry`. Read it out once per workstation (`bao login -method=oidc`):
 
 ```sh
 crane auth login registry.<app_domain> -u push --password-stdin
