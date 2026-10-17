@@ -1,7 +1,4 @@
-# On `fast`: a block device, so SQLite runs in its default WAL mode. `fast` is
-# one unmirrored NVMe with no snapshot task -- losing it means every passkey
-# enrolled again and every client secret rotated. Accepted until the second
-# NVMe mirrors the pool.
+# On `fast`: a block device, so SQLite runs in its default WAL mode.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

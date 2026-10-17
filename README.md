@@ -75,3 +75,10 @@ with secrets and storage definitions.
 - **`enableServiceLinks: false`, always.** The kubelet injects a Docker-link
   variable per Service in the namespace -- `{SERVICE_NAME}_PORT=tcp://ip:port`
   and friends. Which might lead to unwanted configurations.
+
+## Moving a PVC between storage classes
+`storageClassName` is immutable, so the data is copied into a new PVC with the
+app scaled to 0 and Flux suspended. Then two pushes: first switch to the new
+PVC while keeping the old one in git with `kustomize.toolkit.fluxcd.io/prune:
+disabled`, then drop it from git and delete it by hand. Set with `kubectl
+annotate` instead, Flux strips the annotation and prunes the PVC and its data.

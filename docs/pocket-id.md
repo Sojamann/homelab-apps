@@ -27,17 +27,8 @@ graph TD
 One `fast` PVC for `/app/data`: `pocket-id.db` (SQLite, WAL) and uploads. A
 block device, so none of SQLite's NFS caveats apply.
 
-`fast` is one unmirrored NVMe with no snapshot task: losing it means every
-passkey enrolled again and every client re-registered. Accepted until the
-second NVMe mirrors the pool; the apps' admin logins cover the gap.
-
-Moving it between PVCs (how it came off `bulk`):
-
-1. `flux suspend ks infrastructure`, scale `deploy/pocket-id` to 0
-2. apply the new PVC and a pod mounting both; `cp -a` old to new
-3. annotate the old PVC `kustomize.toolkit.fluxcd.io/prune=disabled`
-4. point `claimName` at the new PVC, push, `flux resume ks infrastructure`
-5. delete the old PVC by hand once logins work
+Losing it means every passkey enrolled again and every client re-registered;
+the apps' admin logins cover the gap.
 
 The encryption key is generated in `platform_secrets.tf`; the database is
 unreadable without it, and the tofu state is its backup.
