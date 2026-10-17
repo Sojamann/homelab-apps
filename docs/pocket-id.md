@@ -10,7 +10,7 @@ graph TD
     ES["ExternalSecret pocket-id"] --> SEC[["Secret pocket-id<br/>encryption-key"]]
     SRV["Deployment pocket-id<br/>Recreate - uid 1000"]
     SRV --> SVC(["Service pocket-id:1411"])
-    PVC[/"PVC pocket-id-data<br/>RWX - bulk - 1Gi label"/] -->|/app/data| SRV
+    PVC[/"PVC pocket-id-state<br/>RWO - fast - 1Gi"/] -->|/app/data| SRV
     SEC -->|ENCRYPTION_KEY_FILE| SRV
     RT["HTTPRoute pocket-id<br/>login.$app_domain"] -->|backendRef| SVC
   end
@@ -24,16 +24,20 @@ graph TD
 
 ## Storage
 
-One `bulk` PVC for `/app/data`: `pocket-id.db` (SQLite) and uploads. Losing
-it means every passkey enrolled again and every client secret rotated, so it
-sits on the mirror and in the NAS snapshots.
+One `fast` PVC for `/app/data`: `pocket-id.db` (SQLite, WAL) and uploads. A
+block device, so none of SQLite's NFS caveats apply.
 
-Pocket ID warns against SQLite on NFS; the warning is dismissed on purpose.
-What makes it hold: one pod, one writer, NFSv4.1 locking, and
-`journal_mode(DELETE)` instead of WAL, so no shared-memory file depends on
-the mount. A ZFS snapshot is atomic, so a hot journal is caught with the db
-and rolled back on open. Restore as for
-[kassenbuch](./kassenbuch.md#storage).
+`fast` is one unmirrored NVMe with no snapshot task: losing it means every
+passkey enrolled again and every client re-registered. Accepted until the
+second NVMe mirrors the pool; the apps' admin logins cover the gap.
+
+Moving it between PVCs (how it came off `bulk`):
+
+1. `flux suspend ks infrastructure`, scale `deploy/pocket-id` to 0
+2. apply the new PVC and a pod mounting both; `cp -a` old to new
+3. annotate the old PVC `kustomize.toolkit.fluxcd.io/prune=disabled`
+4. point `claimName` at the new PVC, push, `flux resume ks infrastructure`
+5. delete the old PVC by hand once logins work
 
 The encryption key is generated in `platform_secrets.tf`; the database is
 unreadable without it, and the tofu state is its backup.
