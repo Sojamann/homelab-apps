@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vaultwarden
+  namespace: vaultwarden
+spec:
+  replicas: 1
+  # SQLite has one writer, and the volume is RWO.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: vaultwarden
+  template:
+    metadata:
+      labels:
+        app: vaultwarden
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+      containers:
+        - name: vaultwarden
+          image: docker.io/vaultwarden/server:1.37.4
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            # WebAuthn credentials are bound to this origin; changing it
+            # orphans every user's 2FA.
+            - name: DOMAIN
+              value: https://vault.${app_domain}
+            # Above 1024, so it binds without root.
+            - name: ROCKET_PORT
+              value: "8080"
+            - name: DATA_FOLDER
+              value: /data
+            # Accounts by invite from /admin only; without SMTP an invited
+            # email may register directly.
+            - name: SIGNUPS_ALLOWED
+              value: "false"
+            - name: INVITATIONS_ALLOWED
+              value: "true"
+            - name: ADMIN_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: vaultwarden
+                  key: admin-token
+            - name: ICON_SERVICE
+              value: internal
+            # Envoy appends the client, so the fail2ban-style login limits
+            # see the real IP.
+            - name: IP_HEADER
+              value: X-Forwarded-For
+
+          startupProbe:
+            httpGet: { path: /alive, port: http }
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            httpGet: { path: /alive, port: http }
+            periodSeconds: 30
+          livenessProbe:
+            httpGet: { path: /alive, port: http }
+            periodSeconds: 30
+            failureThreshold: 5
+
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+
+          volumeMounts:
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: vaultwarden-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vaultwarden
+  namespace: vaultwarden
+spec:
+  selector:
+    app: vaultwarden
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

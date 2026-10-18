@@ -1,0 +1,13 @@
+# On `fast`: a block device, so SQLite runs in its default WAL mode. Unmirrored
+# and without a restore path for now -- see docs/vaultwarden.md.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vaultwarden-data
+  namespace: vaultwarden
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: fast
+  resources:
+    requests:
+      storage: 1Gi

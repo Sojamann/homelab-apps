@@ -21,6 +21,10 @@ pages:
                     description: Household supplements
                     icon: mdi:pill
                     url: https://supplements.${app_domain}
+                  - title: Vaultwarden
+                    description: Household passwords
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/vaultwarden.svg
+                    url: https://vault.${app_domain}
 
               - title: Lab
                 links:
