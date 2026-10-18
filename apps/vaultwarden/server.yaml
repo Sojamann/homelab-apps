@@ -33,7 +33,7 @@ spec:
             # WebAuthn credentials are bound to this origin; changing it
             # orphans every user's 2FA.
             - name: DOMAIN
-              value: https://vault.${app_domain}
+              value: https://passwords.${app_domain}
             # Above 1024, so it binds without root.
             - name: ROCKET_PORT
               value: "8080"

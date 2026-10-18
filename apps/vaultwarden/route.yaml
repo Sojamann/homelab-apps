@@ -8,7 +8,7 @@ spec:
     - name: lab
       namespace: gateway
   hostnames:
-    - vault.${app_domain}
+    - passwords.${app_domain}
   rules:
     # Envoy's 15s default would cut off large attachment uploads.
     - timeouts:

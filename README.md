@@ -71,7 +71,7 @@ with secrets and storage definitions.
 | glance             | Lab start page, release feed   | `dash.${app_domain}`        | [link](./docs/glance.md)             |
 | kassenbuch         | Kassenbuch of the Verein       | `kassenbuch.${app_domain}`  | [link](./docs/kassenbuch.md)         |
 | supplement-tracker | Household supplement tracker   | `supplements.${app_domain}` | [link](./docs/supplement-tracker.md) |
-| vaultwarden        | Household password manager     | `vault.${app_domain}`       | [link](./docs/vaultwarden.md)        |
+| vaultwarden        | Household password manager     | `passwords.${app_domain}`   | [link](./docs/vaultwarden.md)        |
 
 
 - **`enableServiceLinks: false`, always.** The kubelet injects a Docker-link

@@ -24,7 +24,7 @@ pages:
                   - title: Vaultwarden
                     description: Household passwords
                     icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/vaultwarden.svg
-                    url: https://vault.${app_domain}
+                    url: https://passwords.${app_domain}
 
               - title: Lab
                 links:

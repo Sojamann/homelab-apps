@@ -1,7 +1,7 @@
 # Vaultwarden
 
 Bitwarden-compatible password manager for the household; the official
-Bitwarden apps and browser extensions point at `https://vault.${app_domain}`.
+Bitwarden apps and browser extensions point at `https://passwords.${app_domain}`.
 LAN and tailnet only, like everything behind the gateway.
 
 ```mermaid
@@ -12,7 +12,7 @@ graph TD
     SRV --> SVC(["Service vaultwarden:8080"])
     PVC[/"PVC vaultwarden-data<br/>RWO - fast - 1Gi"/] -->|/data| SRV
     SEC -->|ADMIN_TOKEN| SRV
-    RT["HTTPRoute vaultwarden<br/>vault.$app_domain - timeout 0s"] -->|backendRef| SVC
+    RT["HTTPRoute vaultwarden<br/>passwords.$app_domain - timeout 0s"] -->|backendRef| SVC
   end
 
   BAO["OpenBao<br/>kv/vaultwarden/app"] -.->|ClusterSecretStore openbao| ES
