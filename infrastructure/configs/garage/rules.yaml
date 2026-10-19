@@ -1,0 +1,18 @@
+# `origin: lab` -- see nas/rules.yaml.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: garage
+  namespace: monitoring
+spec:
+  groups:
+    - name: garage
+      rules:
+        - alert: GarageDown
+          expr: up{job="garage"} == 0
+          for: 5m
+          labels:
+            severity: critical
+            origin: lab
+          annotations:
+            summary: Garage (S3 on the NAS) unreachable

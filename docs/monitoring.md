@@ -39,7 +39,9 @@ graph TD
   CFG["infrastructure/configs/dashboards"] -->|configMapGenerator| DASH
   NAS["infrastructure/configs/nas<br/>ScrapeConfig - PrometheusRule"] --> MON
   PVE["infrastructure/configs/proxmox<br/>ScrapeConfig - PrometheusRule"] --> MON
+  GA["infrastructure/configs/garage<br/>ScrapeConfig - PrometheusRule"] --> MON
   PROM -->|scrapes :9100| TN["TrueNAS node-exporter<br/>10.212.4.150 - see machines/truenas.md"]
+  PROM -->|"scrapes :3903/metrics, bearer"| GS["Garage on the NAS<br/>s3-k8s - see machines/truenas.md"]
   PROM -->|scrapes :9100 - :9221<br/>via metrics-allow-proxmox| PX["Proxmox hosts<br/>node-exporter + pve-exporter"]
 
   AM -->|critical: sound<br/>everything else: silent| TG["Telegram group"]
@@ -63,6 +65,7 @@ no folders:
 | K8s Overview | the quick look -- CPU, memory (usage + requests), network, disk per node; what each PVC holds |
 | K8s Detail   | digging in -- stats, per namespace, per pod CPU/throttling/memory, a pods table |
 | NAS          | pool fill + state, CPU, memory with ARC split out, ARC hit ratio, network |
+| Garage       | upstream's: API requests + errors, disk I/O, resync and table queues |
 | Proxmox      | quorum, storage fill, CPU, memory (usage + assigned), root fs, network per host; a guests table |
 
 Anything else is in Prometheus and reachable through Explore.

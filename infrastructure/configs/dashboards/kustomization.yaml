@@ -30,3 +30,6 @@ configMapGenerator:
   - name: dashboard-proxmox
     files:
       - proxmox.json
+  - name: dashboard-garage
+    files:
+      - garage.json
