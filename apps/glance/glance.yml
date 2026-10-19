@@ -58,7 +58,7 @@ pages:
                   - title: Router
                     description: UniFi
                     icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/unifi.svg
-                    url: https://10.212.1.1
+                    url: https://10.212.2.1
 
       - size: full
         widgets:
