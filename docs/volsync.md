@@ -144,9 +144,12 @@ repository `k8s-backups/volsync-drill/drill-data`, and `sync` in the writer
 before the backup. Afterwards delete the namespace and the prefix:
 
 ```sh
-aws --endpoint-url https://s3.<lab_domain>:3900 --region lab \
-  s3 rm --recursive s3://k8s-backups/volsync-drill/
+mise run s3 volsync rm --recursive --dryrun s3://k8s-backups/volsync-drill/
+mise run s3 volsync rm --recursive s3://k8s-backups/volsync-drill/
 ```
+
+`mise run s3 <key> <aws s3 args>` is the lab repo's wrapper: endpoint, region
+and the key pair from `secrets/vault.yml`.
 
 ## Removing an app
 
