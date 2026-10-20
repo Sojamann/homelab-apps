@@ -34,8 +34,10 @@ spec:
         key: volsync/restic
         property: secret-key
 ---
-# A CSI snapshot, restored to a temporary PVC the mover reads, both removed
-# once the run ends. Times are UTC.
+# A CSI clone the mover reads, removed once the run ends. Not `Snapshot`: on
+# the encrypted pool the driver's detached restore from a snapshot is refused
+# by TrueNAS, while a clone is a plain `zfs clone` that pins its origin only
+# for the run. Times are UTC.
 apiVersion: volsync.backube/v1alpha1
 kind: ReplicationSource
 metadata:
@@ -47,8 +49,7 @@ spec:
     schedule: "15 0 * * *"
   restic:
     repository: vaultwarden-data-restic
-    copyMethod: Snapshot
-    volumeSnapshotClassName: fast
+    copyMethod: Clone
     storageClassName: fast
     pruneIntervalDays: 7
     retain:
