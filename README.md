@@ -9,7 +9,7 @@ then stops.
 ```
 clusters/lab/              the entrypoint -- FluxInstance.spec.sync.path points here
 infrastructure/controllers shared services -- operators and charts the apps depend on
-infrastructure/configs     CRs no app owns, naming kinds the controllers install
+infrastructure/configs     CRs naming kinds the controllers install -- rules, scrapes, backups of controllers
 apps/                      a Flux Kustomization per app, plus its directory
 ```
 
@@ -42,21 +42,24 @@ chart that defines its kind:
   not change -- renaming prunes the CNPG release, its CRDs, and every database.
 - `infrastructure-configs` -> `configs/`: CRs no app owns (scrape targets
   outside the cluster, rules, dashboards). A CR an app owns belongs beside that
-  app instead.
+  app instead -- unless the app is itself in `controllers/`, like Pocket ID's
+  backup in `configs/pocket-id/`.
 
-| Name                  | Description        | Namespace     | Version                        | Docs                         |
-|-----------------------|--------------------|---------------|--------------------------------|------------------------------|
-| cloudnative-pg        | postgres operator  | `cnpg-system` | chart 0.29.0 (operator 1.30)   |                              |
-| kube-prometheus-stack | metrics + grafana  | `monitoring`  | chart 91.3.0 (operator 0.94.0) | [link](./docs/monitoring.md) |
-| pocket-id             | OIDC provider      | `pocket-id`   | v2.18.0                        | [link](./docs/pocket-id.md)  |
-| zot                   | OCI registry       | `zot`         | v2.1.22                        | [link](./docs/zot.md)        |
+| Name                  | Description       | Namespace        | Version                        | Docs                         |
+|-----------------------|-------------------|------------------|--------------------------------|------------------------------|
+| cloudnative-pg        | postgres operator | `cnpg-system`    | chart 0.29.0 (operator 1.30)   |                              |
+| kube-prometheus-stack | metrics + grafana | `monitoring`     | chart 91.3.0 (operator 0.94.0) | [link](./docs/monitoring.md) |
+| pocket-id             | OIDC provider     | `pocket-id`      | v2.18.0                        | [link](./docs/pocket-id.md)  |
+| volsync               | PVC backups       | `volsync-system` | chart 0.16.0                   | [link](./docs/volsync.md)    |
+| zot                   | OCI registry      | `zot`            | v2.1.22                        | [link](./docs/zot.md)        |
 
 Grafana is served at `grafana.${app_domain}`, Alertmanager at
 `alertmanager.${app_domain}`, the registry at `registry.${app_domain}`, Pocket
 ID at `login.${app_domain}`.
 
 ## Updates
-Renovate (`renovate.json`) opens a PR when an `OCIRepository` chart tag or a
+Renovate (`renovate.json`) opens a PR when a chart version (`OCIRepository`
+tag or `HelmRelease` on a `HelmRepository`) or a
 public image has a new release that is 3 days old. Merging is deploying --
 Flux reconciles `main`.
 Images in our own zot registry are skipped; `mise run image` bumps those.

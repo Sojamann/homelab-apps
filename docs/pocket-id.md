@@ -11,15 +11,17 @@ graph TD
     SRV["Deployment pocket-id<br/>Recreate - uid 1000"]
     SRV --> SVC(["Service pocket-id:1411"])
     PVC[/"PVC pocket-id-state<br/>RWO - fast - 1Gi"/] -->|/app/data| SRV
+    RS["ReplicationSource pocket-id-state<br/>restic - daily<br/>from infrastructure/configs"] -.->|clones| PVC
     SEC -->|ENCRYPTION_KEY_FILE| SRV
     RT["HTTPRoute pocket-id<br/>login.$app_domain"] -->|backendRef| SVC
   end
 
   BAO["OpenBao<br/>kv/pocket-id/app"] -.->|ClusterSecretStore openbao| ES
+  RS -->|see volsync.md| GA["Garage on the NAS<br/>k8s-backups"]
   RT -.->|parentRef| GW["Gateway lab<br/>ns gateway - platform layer"]
 
   classDef ext fill:#eee,stroke:#999,stroke-dasharray:3 3;
-  class GW,BAO ext;
+  class GW,BAO,GA ext;
 ```
 
 ## Storage
@@ -27,8 +29,11 @@ graph TD
 One `fast` PVC for `/app/data`: `pocket-id.db` (SQLite, WAL) and uploads. A
 block device, so none of SQLite's NFS caveats apply.
 
-Losing it means every passkey enrolled again and every client re-registered;
-the apps' admin logins cover the gap.
+Backed up nightly by VolSync into Garage -- see [volsync.md](./volsync.md).
+The ReplicationSource is in `infrastructure/configs/pocket-id/`, not here:
+this directory is applied in the same pass as the chart that installs its
+kind. Without the backup, losing it means every passkey enrolled again and
+every client re-registered; the apps' admin logins cover the gap.
 
 The encryption key is generated in `platform_secrets.tf`; the database is
 unreadable without it, and the tofu state is its backup.

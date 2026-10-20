@@ -1,5 +1,5 @@
-# On `fast`: a block device, so SQLite runs in its default WAL mode. Unmirrored
-# and without a restore path for now -- see docs/vaultwarden.md.
+# On `fast`: a block device, so SQLite runs in its default WAL mode. Backed up
+# by backup.yaml -- see docs/volsync.md.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

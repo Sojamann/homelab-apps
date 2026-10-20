@@ -11,15 +11,17 @@ graph TD
     SRV["Deployment vaultwarden<br/>Recreate - uid 1000"]
     SRV --> SVC(["Service vaultwarden:8080"])
     PVC[/"PVC vaultwarden-data<br/>RWO - fast - 1Gi"/] -->|/data| SRV
+    RS["ReplicationSource vaultwarden-data<br/>restic - daily"] -.->|clones| PVC
     SEC -->|ADMIN_TOKEN| SRV
     RT["HTTPRoute vaultwarden<br/>passwords.$app_domain - timeout 0s"] -->|backendRef| SVC
   end
 
   BAO["OpenBao<br/>kv/vaultwarden/app"] -.->|ClusterSecretStore openbao| ES
+  RS -->|see volsync.md| GA["Garage on the NAS<br/>k8s-backups"]
   RT -.->|parentRef| GW["Gateway lab<br/>ns gateway - platform layer"]
 
   classDef ext fill:#eee,stroke:#999,stroke-dasharray:3 3;
-  class GW,BAO ext;
+  class GW,BAO,GA ext;
 ```
 
 ## Storage
@@ -28,11 +30,9 @@ One `fast` PVC for all of `/data`: `db.sqlite3` (SQLite, WAL), `rsa_key.pem`
 (signs login tokens), `attachments/`, `sends/`, `icon_cache/`. A block
 device, so none of SQLite's NFS caveats apply.
 
-**No backup yet.** `fast` is one unmirrored NVMe with no restore path; a dead
-drive, a deleted PVC or a bad migration loses the server's data. The vault
-items themselves survive in every client's offline cache and can be exported
-from there, attachments and Sends do not. Closed by the pool-wide `fast`
-backup, not by anything here.
+Backed up nightly by VolSync (`backup.yaml`) into Garage, restore and
+retention in [volsync.md](./volsync.md). The vault items also survive in
+every client's offline cache; attachments and Sends only in the backup.
 
 1Gi is plenty for the db and icons; attachments are what grows. `fast`
 allows expansion -- raise the request in `storage.yaml`.
