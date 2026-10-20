@@ -1,0 +1,64 @@
+# Nightly backup of pocket-id-state. Here, not beside the app in controllers: the
+# kinds below are installed in that same pass.
+# restic to Garage, credentials shared by every backed-up PVC and written in
+# platform_secrets.tf. Restore and drill: docs/volsync.md.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: pocket-id-state-restic
+  namespace: pocket-id
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: openbao
+  target:
+    name: pocket-id-state-restic
+    template:
+      data:
+        RESTIC_REPOSITORY: s3:https://s3-k8s.${lab_domain}:3900/k8s-backups/pocket-id/pocket-id-state
+        RESTIC_PASSWORD: "{{ .password }}"
+        AWS_ACCESS_KEY_ID: "{{ .accessKey }}"
+        AWS_SECRET_ACCESS_KEY: "{{ .secretKey }}"
+        AWS_DEFAULT_REGION: lab
+  data:
+    - secretKey: password
+      remoteRef:
+        key: volsync/restic
+        property: password
+    - secretKey: accessKey
+      remoteRef:
+        key: volsync/restic
+        property: access-key
+    - secretKey: secretKey
+      remoteRef:
+        key: volsync/restic
+        property: secret-key
+---
+# A CSI snapshot, restored to a temporary PVC the mover reads, both removed
+# once the run ends. Times are UTC.
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: pocket-id-state
+  namespace: pocket-id
+spec:
+  sourcePVC: pocket-id-state
+  trigger:
+    schedule: "45 0 * * *"
+  restic:
+    repository: pocket-id-state-restic
+    copyMethod: Snapshot
+    volumeSnapshotClassName: fast
+    storageClassName: fast
+    pruneIntervalDays: 7
+    retain:
+      daily: 14
+      weekly: 8
+      monthly: 6
+    # The app's own uid, so the mover needs no privileges.
+    moverSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000

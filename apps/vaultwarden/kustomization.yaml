@@ -4,5 +4,6 @@ resources:
   - namespace.yaml
   - secret.yaml
   - storage.yaml
+  - backup.yaml
   - server.yaml
   - route.yaml

@@ -1,0 +1,28 @@
+# `origin: lab` -- see nas/rules.yaml. Warning, not critical: backups are
+# daily, a missed one can wait until morning.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: volsync
+  namespace: monitoring
+spec:
+  groups:
+    - name: volsync
+      rules:
+        - alert: VolSyncBackupFailing
+          expr: volsync_volume_out_of_sync{role="source"} == 1
+          for: 1h
+          labels:
+            severity: warning
+            origin: lab
+          annotations:
+            summary: "Backup of {{ $labels.obj_namespace }}/{{ $labels.obj_name }} failing"
+        # Without it a dead controller or scrape silences the rule above.
+        - alert: VolSyncMetricsAbsent
+          expr: absent(volsync_volume_out_of_sync)
+          for: 1h
+          labels:
+            severity: warning
+            origin: lab
+          annotations:
+            summary: VolSync exports no sync status
