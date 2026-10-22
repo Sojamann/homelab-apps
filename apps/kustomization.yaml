@@ -7,4 +7,5 @@ resources:
   - glance.yaml
   - kassenbuch.yaml
   - supplement-tracker.yaml
+  - syncthing.yaml
   - vaultwarden.yaml

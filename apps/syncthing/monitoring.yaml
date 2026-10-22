@@ -1,0 +1,71 @@
+# /metrics sits behind the GUI's auth; the API key passes as a bearer token.
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: syncthing
+  namespace: syncthing
+spec:
+  selector:
+    matchLabels:
+      app: syncthing
+  endpoints:
+    - port: http
+      path: /metrics
+      authorization:
+        type: Bearer
+        credentials:
+          name: syncthing
+          key: api-key
+---
+# `origin: lab` -- see infrastructure/configs/nas/rules.yaml.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: syncthing
+  namespace: syncthing
+spec:
+  groups:
+    - name: syncthing
+      rules:
+        - alert: SyncthingDown
+          expr: absent(up{job="syncthing", namespace="syncthing"} == 1)
+          for: 10m
+          labels:
+            severity: critical
+            origin: lab
+          annotations:
+            summary: Syncthing hub not scraped -- devices sync only with each other
+
+        # 8 is FolderError in syncthing's lib/model/folderstate.go.
+        - alert: SyncthingFolderError
+          expr: syncthing_model_folder_state == 8
+          for: 1h
+          labels:
+            severity: warning
+            origin: lab
+          annotations:
+            summary: "Syncthing folder {{ $labels.folder }} in error state"
+
+        # What the hub still has to pull. Longer than the error alert: a large
+        # first sync is legitimately behind for hours.
+        - alert: SyncthingFolderOutOfSync
+          expr: syncthing_model_folder_summary{scope="need", type="bytes"} > 0
+          for: 6h
+          labels:
+            severity: warning
+            origin: lab
+          annotations:
+            summary: "Syncthing folder {{ $labels.folder }} behind for 6h"
+
+        # A device that has not connected once in a week stopped syncing
+        # without anyone noticing. The series appears on a device's first
+        # connection after a restart, so a device that never returns after
+        # one goes unseen here.
+        - alert: SyncthingDeviceUnseen
+          expr: max_over_time(syncthing_connections_active[7d]) == 0
+          for: 1h
+          labels:
+            severity: warning
+            origin: lab
+          annotations:
+            summary: "Syncthing device {{ $labels.device }} not connected for 7 days"

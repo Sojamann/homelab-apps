@@ -1,0 +1,60 @@
+# Nightly backup of the config volume -- see vaultwarden/backup.yaml for the
+# why of each field. Restore and drill: docs/volsync.md.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: syncthing-config-restic
+  namespace: syncthing
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: openbao
+  target:
+    name: syncthing-config-restic
+    template:
+      data:
+        RESTIC_REPOSITORY: s3:https://s3-k8s.${lab_domain}:3900/k8s-backups/syncthing/syncthing-config
+        RESTIC_PASSWORD: "{{ .password }}"
+        AWS_ACCESS_KEY_ID: "{{ .accessKey }}"
+        AWS_SECRET_ACCESS_KEY: "{{ .secretKey }}"
+        AWS_DEFAULT_REGION: lab
+  data:
+    - secretKey: password
+      remoteRef:
+        key: volsync/restic
+        property: password
+    - secretKey: accessKey
+      remoteRef:
+        key: volsync/restic
+        property: access-key
+    - secretKey: secretKey
+      remoteRef:
+        key: volsync/restic
+        property: secret-key
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: syncthing-config
+  namespace: syncthing
+spec:
+  sourcePVC: syncthing-config
+  trigger:
+    schedule: "30 0 * * *"
+  restic:
+    repository: syncthing-config-restic
+    copyMethod: Clone
+    storageClassName: fast
+    pruneIntervalDays: 7
+    retain:
+      daily: 14
+      weekly: 8
+      monthly: 6
+    moverSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      fsGroup: 1000
+      seccompProfile:
+        type: RuntimeDefault

@@ -1,0 +1,161 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: syncthing
+  namespace: syncthing
+spec:
+  replicas: 1
+  # SQLite has one writer, and the config volume is RWO.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: syncthing
+  template:
+    metadata:
+      labels:
+        app: syncthing
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        # Keys on first start; on every start, the GUI login from the Secret.
+        # An existing key is never overwritten.
+        - name: generate
+          image: docker.io/syncthing/syncthing:2.1.7
+          command:
+            - /bin/syncthing
+            - generate
+            - --no-port-probing
+            - --gui-user=admin
+            - --gui-password=$(GUI_PASSWORD)
+          env:
+            - name: GUI_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: syncthing
+                  key: gui-password
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: config
+              mountPath: /var/syncthing/config
+      containers:
+        - name: syncthing
+          image: docker.io/syncthing/syncthing:2.1.7
+          ports:
+            - name: http
+              containerPort: 8384
+            - name: sync
+              containerPort: 22000
+              protocol: TCP
+            - name: sync-quic
+              containerPort: 22000
+              protocol: UDP
+          env:
+            - name: STGUIAPIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: syncthing
+                  key: api-key
+            - name: STNOUPGRADE
+              value: "1"
+
+          # What git owns of the config; the rest is the GUI's. Re-applied on
+          # every start, so a change in the GUI to these does not survive.
+          # Reached over LAN and tailnet only: no discovery, relays or NAT.
+          # New folders default to /data and a 7-day trash can.
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - sh
+                  - -c
+                  - |
+                    api() {
+                      curl -fsS -m 5 -X PATCH -H "X-API-Key: $STGUIAPIKEY" \
+                        "http://127.0.0.1:8384/rest/config/$1" -d "$2"
+                    }
+                    until curl -fs -m 2 http://127.0.0.1:8384/rest/noauth/health; do sleep 1; done
+                    api options '{
+                      "listenAddresses": ["tcp://0.0.0.0:22000", "quic://0.0.0.0:22000"],
+                      "globalAnnounceEnabled": false,
+                      "localAnnounceEnabled": false,
+                      "relaysEnabled": false,
+                      "natEnabled": false,
+                      "urAccepted": -1,
+                      "crashReportingEnabled": false
+                    }' &&
+                    api defaults/folder '{
+                      "path": "/data/",
+                      "versioning": {"type": "trashcan", "params": {"cleanoutDays": "7"}}
+                    }'
+
+          startupProbe:
+            httpGet: { path: /rest/noauth/health, port: http }
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            httpGet: { path: /rest/noauth/health, port: http }
+            periodSeconds: 30
+          livenessProbe:
+            httpGet: { path: /rest/noauth/health, port: http }
+            periodSeconds: 30
+            failureThreshold: 5
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+
+          # The first scan of a large folder hashes everything; memory grows
+          # with the number of files, not their size.
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+
+          volumeMounts:
+            - name: config
+              mountPath: /var/syncthing/config
+            - name: data
+              mountPath: /data
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: syncthing-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: syncthing-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: syncthing
+  namespace: syncthing
+  labels:
+    app: syncthing
+spec:
+  selector:
+    app: syncthing
+  ports:
+    - name: http
+      port: 8384
+      targetPort: http
+    - name: sync
+      port: 22000
+      targetPort: sync
+      protocol: TCP
+    - name: sync-quic
+      port: 22000
+      targetPort: sync-quic
+      protocol: UDP

@@ -7,6 +7,7 @@ a ZFS snapshot there dies with the zvol -- `kubectl delete pvc` included.
 | PVC                | Namespace     | Schedule (UTC) | Defined in                                     |
 |--------------------|---------------|----------------|------------------------------------------------|
 | `vaultwarden-data` | `vaultwarden` | `00:15`        | `apps/vaultwarden/backup.yaml`                 |
+| `syncthing-config` | `syncthing`   | `00:30`        | `apps/syncthing/backup.yaml`                   |
 | `pocket-id-state`  | `pocket-id`   | `00:45`        | `infrastructure/configs/pocket-id/backup.yaml` |
 
 Not backed up: OpenBao (tofu rebuilds it from the vault), Prometheus and

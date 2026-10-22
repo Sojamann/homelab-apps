@@ -1,0 +1,52 @@
+# The synced files: a static PV on a fixed directory of the `k8s-csi` export,
+# not a `bulk` PVC. `Retain`, so deleting the PVC, the namespace or this file
+# leaves the data; a rebuild re-binds by name. Created by hand on the NAS
+# (owned by uid 1000) -- csi-driver-nfs mkdirs only what it provisions. NAS
+# snapshots on `slow/k8s-csi` are its backup.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: syncthing-data
+spec:
+  capacity:
+    # A label -- NFS directory, not enforced.
+    storage: 1Ti
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions: [nfsvers=4.1, hard]
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: syncthing-data
+    volumeAttributes:
+      # The NAS's k8s address, as in the `bulk` StorageClass.
+      server: 10.212.4.150
+      share: /mnt/slow/k8s-csi/syncthing
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: syncthing-data
+  namespace: syncthing
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: ""
+  volumeName: syncthing-data
+  resources:
+    requests:
+      storage: 1Ti
+---
+# Config, device keys and the index db (SQLite). On `fast`, as SQLite wants a
+# block device; backed up by backup.yaml -- losing the keys means re-pairing
+# every device.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: syncthing-config
+  namespace: syncthing
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: fast
+  resources:
+    requests:
+      storage: 2Gi
