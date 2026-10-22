@@ -27,7 +27,7 @@ spec:
         - name: pocket-id
           # distroless: no shell, but `kubectl exec ... /app/pocket-id
           # one-time-access-token <user>` still works.
-          image: ghcr.io/pocket-id/pocket-id:v2.18.0-distroless
+          image: ghcr.io/pocket-id/pocket-id:v2.19.1-distroless
           ports:
             - name: http
               containerPort: 1411
