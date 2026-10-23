@@ -88,9 +88,19 @@ On the device, install syncthing, then add the hub as a remote device:
 Accept the device in the hub's GUI, then share that person's folders with it.
 On the device, accept the folders and pick where they live locally.
 
+Hub folders stay *Send & Receive*: the hub relays between devices that are
+never online together, and a *Receive Only* hub would hold their changes
+without passing them on. It would not shield devices either -- other devices'
+changes, deletes included, still arrive. The trash can and NAS snapshots are
+the undo. *Receive Only* + `ignoreDelete` is for an archive, e.g. a camera
+roll.
+
+New folders: ignore pattern `(?d).DS_Store`.
+
 Clients: Windows and macOS the official builds (or SyncTrayzor /
-syncthing-macos), Android Syncthing-Fork, iOS Möbius Sync or Synctrain. iOS
-syncs only while the app runs; phones take documents, not the camera roll.
+syncthing-macos, brew cask `syncthing-app`), Android Syncthing-Fork, iOS
+Möbius Sync or Synctrain. iOS syncs only while the app runs; phones take
+documents, not the camera roll.
 
 Away from home a device syncs over the tailnet; without it, once it is home.
 
