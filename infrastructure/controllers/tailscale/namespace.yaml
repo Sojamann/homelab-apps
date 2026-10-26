@@ -1,0 +1,8 @@
+# The proxies the operator spawns run here too, and they need NET_ADMIN and a
+# privileged init container for ip_forward.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tailscale
+  labels:
+    pod-security.kubernetes.io/enforce: privileged

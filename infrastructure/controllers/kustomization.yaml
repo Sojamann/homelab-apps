@@ -12,5 +12,6 @@ resources:
   - cloudnative-pg
   - kube-prometheus-stack
   - pocket-id
+  - tailscale
   - volsync
   - zot

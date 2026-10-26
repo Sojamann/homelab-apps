@@ -51,6 +51,7 @@ chart that defines its kind:
 | cloudnative-pg        | postgres operator | `cnpg-system`    | chart 0.29.0 (operator 1.30)   |                              |
 | kube-prometheus-stack | metrics + grafana | `monitoring`     | chart 91.3.0 (operator 0.94.0) | [link](./docs/monitoring.md) |
 | pocket-id             | OIDC provider     | `pocket-id`      | v2.18.0                        | [link](./docs/pocket-id.md)  |
+| tailscale             | tailnet egress    | `tailscale`      | chart 1.104.2                  | [link](./docs/tailscale.md)  |
 | volsync               | PVC backups       | `volsync-system` | chart 0.16.0                   | [link](./docs/volsync.md)    |
 | zot                   | OCI registry      | `zot`            | v2.1.22                        | [link](./docs/zot.md)        |
 
