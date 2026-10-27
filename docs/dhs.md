@@ -106,21 +106,3 @@ overwritten in place, so stop the app first.
 On a fresh box: the dump holds no roles. The image creates `POSTGRES_USER` on
 first start, which owns everything here; the backup role (above) has to be
 created again. The server must be the dump's major (17) or newer.
-
-## Drill
-
-Run once on 2026-10-27, in `dhs`: a `ReplicationDestination` (`trigger.manual`,
-`copyMethod: Direct`, uid 70) into a throwaway `fast` PVC `drill`, then a pod
-on `postgres:17.11-alpine` that mounts it read-only, starts a socket-only
-postgres in an `emptyDir` and restores into it:
-
-```sh
-initdb -D /tmp/pg
-pg_ctl -D /tmp/pg -o "-k /tmp -c listen_addresses=''" -w start
-createdb -h /tmp drill
-pg_restore -h /tmp -d drill --no-owner --no-privileges --exit-on-error /restore/postgres.dump
-psql -h /tmp -d drill -c "select schemaname, relname, n_live_tup from pg_stat_user_tables order by 1,2"
-```
-
-Result: clean restore, 12 tables (53 users, flyway at 5 migrations).
-Afterwards `kubectl -n dhs delete pod/drill replicationdestination/drill pvc/drill`.
