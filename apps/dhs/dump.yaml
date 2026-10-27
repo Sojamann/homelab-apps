@@ -33,6 +33,7 @@ spec:
                   pg_dump -Fc -f /dump/postgres.dump.tmp
                   sync
                   mv /dump/postgres.dump.tmp /dump/postgres.dump
+                  ls -l /dump/postgres.dump
               env:
                 - name: PGHOST
                   value: dhs
