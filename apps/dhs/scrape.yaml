@@ -6,6 +6,10 @@ metadata:
   namespace: monitoring
 spec:
   jobName: dhs
+  # Not the proxy Service's name, which is all the target address says.
+  relabelings:
+    - targetLabel: instance
+      replacement: dhs
   staticConfigs:
     - targets:
         - dhs.dhs.svc.cluster.local:9100
