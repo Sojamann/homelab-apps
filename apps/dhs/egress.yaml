@@ -1,0 +1,17 @@
+# The box over the tailnet, through a tailscale operator proxy. The proxy
+# forwards every port; the tailnet policy allows `tag:k8s` 5432 and 9100 only.
+apiVersion: v1
+kind: Service
+metadata:
+  name: dhs
+  namespace: dhs
+  annotations:
+    tailscale.com/tailnet-fqdn: dhs.${tailnet_domain}
+spec:
+  type: ExternalName
+  externalName: placeholder # the operator rewrites it
+  ports:
+    - name: postgres
+      port: 5432
+    - name: node-exporter
+      port: 9100

@@ -1,0 +1,66 @@
+# Nightly backup of the dump, after dump.yaml has written it.
+# restic to Garage, credentials shared by every backed-up PVC and written in
+# platform_secrets.tf. Restore and drill: docs/volsync.md.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: postgres-dump-restic
+  namespace: dhs
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: openbao
+  target:
+    name: postgres-dump-restic
+    template:
+      data:
+        RESTIC_REPOSITORY: s3:https://s3-k8s.${lab_domain}:3900/k8s-backups/dhs/postgres-dump
+        RESTIC_PASSWORD: "{{ .password }}"
+        AWS_ACCESS_KEY_ID: "{{ .accessKey }}"
+        AWS_SECRET_ACCESS_KEY: "{{ .secretKey }}"
+        AWS_DEFAULT_REGION: lab
+  data:
+    - secretKey: password
+      remoteRef:
+        key: volsync/restic
+        property: password
+    - secretKey: accessKey
+      remoteRef:
+        key: volsync/restic
+        property: access-key
+    - secretKey: secretKey
+      remoteRef:
+        key: volsync/restic
+        property: secret-key
+---
+# A CSI clone the mover reads, removed once the run ends. Not `Snapshot`: on
+# the encrypted pool the driver's detached restore from a snapshot is refused
+# by TrueNAS, while a clone is a plain `zfs clone` that pins its origin only
+# for the run. Times are UTC.
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: postgres-dump
+  namespace: dhs
+spec:
+  sourcePVC: postgres-dump
+  trigger:
+    schedule: "0 1 * * *"
+  restic:
+    repository: postgres-dump-restic
+    copyMethod: Clone
+    storageClassName: fast
+    pruneIntervalDays: 7
+    retain:
+      daily: 14
+      weekly: 8
+      monthly: 6
+    # The dump job's uid, so the mover needs no privileges.
+    moverSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 70
+      runAsGroup: 70
+      fsGroup: 70
+      seccompProfile:
+        type: RuntimeDefault

@@ -15,7 +15,7 @@ graph TD
 
   SVC(["Service, type ExternalName<br/>tailscale.com/tailnet-fqdn"]) -.->|watched by| OP
   CL["in-cluster client"] --> SVC --> PX
-  PX -->|WireGuard| PUB["tailnet machine<br/>tag:public"]
+  PX -->|WireGuard| PUB["tailnet machine<br/>tag:public, e.g. dhs"]
   BAO["OpenBao<br/>kv/tailscale/operator"] -.->|ClusterSecretStore openbao| ES
 
   classDef ext fill:#eee,stroke:#999,stroke-dasharray:3 3;
@@ -30,15 +30,17 @@ named tags.
 
 ## Reaching a machine
 
-An `ExternalName` Service beside the consumer, in its namespace:
+An `ExternalName` Service beside the consumer, in its namespace -- e.g.
+`apps/dhs/egress.yaml`. `${tailnet_domain}` comes from `cluster-vars`: it names
+the tailnet, and this repo is public.
 
 ```yaml
 apiVersion: v1
 kind: Service
 metadata:
-  name: dhs
+  name: <machine>
   annotations:
-    tailscale.com/tailnet-fqdn: <machine>.<tailnet>.ts.net
+    tailscale.com/tailnet-fqdn: <machine>.${tailnet_domain}
 spec:
   type: ExternalName
   externalName: placeholder # the operator rewrites it

@@ -1,0 +1,12 @@
+# The latest dump only; history is restic's, by backup.yaml.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-dump
+  namespace: dhs
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: fast
+  resources:
+    requests:
+      storage: 5Gi

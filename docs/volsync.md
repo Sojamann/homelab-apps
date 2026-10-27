@@ -9,6 +9,7 @@ a ZFS snapshot there dies with the zvol -- `kubectl delete pvc` included.
 | `vaultwarden-data` | `vaultwarden` | `00:15`        | `apps/vaultwarden/backup.yaml`                 |
 | `syncthing-config` | `syncthing`   | `00:30`        | `apps/syncthing/backup.yaml`                   |
 | `pocket-id-state`  | `pocket-id`   | `00:45`        | `infrastructure/configs/pocket-id/backup.yaml` |
+| `postgres-dump`    | `dhs`         | `01:00`        | `apps/dhs/backup.yaml`                         |
 
 Not backed up: OpenBao (tofu rebuilds it from the vault), Prometheus and
 Alertmanager (history only), and `bulk` (on the mirror, under the NAS
@@ -55,7 +56,8 @@ encrypted"*). A clone is a plain `zfs clone`, which inherits the encryption and
 pins its origin only for the length of the run.
 
 The copy is crash-consistent: what is on disk at that moment, like pulling the
-plug. SQLite fsyncs its commits, so both apps are fine. Anything that does not
+plug. SQLite fsyncs its commits, so both apps are fine; the DHS dump is written
+aside, synced and renamed. Anything that does not
 fsync loses whatever the page cache was still holding -- the drill caught a
 freshly written file going in as 0 bytes.
 

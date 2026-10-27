@@ -1,0 +1,6 @@
+# DHS runs on a public box outside the lab -- see docs/dhs.md. Nothing here
+# serves it; this namespace only pulls from it.
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: dhs

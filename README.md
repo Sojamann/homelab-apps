@@ -25,13 +25,14 @@ graph TD
   CFG -.->|dependsOn| INFRA
   APPS -.->|dependsOn| CFG
 
+  APPS -->|applies| DH["dhs<br/>./apps/dhs<br/>prune - wait"]
   APPS -->|applies| GL["glance<br/>./apps/glance<br/>prune - wait"]
   APPS -->|applies| KB["kassenbuch<br/>./apps/kassenbuch<br/>prune - wait"]
   APPS -->|applies| ST["supplement-tracker<br/>./apps/supplement-tracker<br/>prune - wait"]
   APPS -->|applies| SY["syncthing<br/>./apps/syncthing<br/>prune - wait"]
   APPS -->|applies| VW["vaultwarden<br/>./apps/vaultwarden<br/>prune - wait"]
 ```
-> post-build applies `cluster-vars` secret providing the domain
+> post-build applies `cluster-vars` secret providing the domains and the tailnet suffix
 
 ## Infrastructure
 Shared services the apps depend on being installed, operators and the like.
@@ -73,6 +74,7 @@ with secrets and storage definitions.
 
 | Name               | Description                    | Domain                      | Docs                                 |
 |--------------------|--------------------------------|-----------------------------|--------------------------------------|
+| dhs                | Backups + scrape of the DHS box, over the tailnet | --       | [link](./docs/dhs.md)                |
 | glance             | Lab start page, release feed   | `dash.${app_domain}`        | [link](./docs/glance.md)             |
 | kassenbuch         | Kassenbuch of the Verein       | `kassenbuch.${app_domain}`  | [link](./docs/kassenbuch.md)         |
 | supplement-tracker | Household supplement tracker   | `supplements.${app_domain}` | [link](./docs/supplement-tracker.md) |

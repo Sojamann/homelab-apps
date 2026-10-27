@@ -1,0 +1,13 @@
+# node_exporter on the box, behind `tailscale serve` -- through egress.yaml.
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: dhs
+  namespace: monitoring
+spec:
+  jobName: dhs
+  staticConfigs:
+    - targets:
+        - dhs.dhs.svc.cluster.local:9100
+      labels:
+        node: dhs

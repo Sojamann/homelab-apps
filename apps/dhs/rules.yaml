@@ -1,0 +1,29 @@
+# `origin: lab` -- see infrastructure/configs/proxmox/rules.yaml.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: dhs
+  namespace: monitoring
+spec:
+  groups:
+    - name: dhs
+      rules:
+        - alert: DhsDown
+          expr: up{job="dhs"} == 0
+          for: 5m
+          labels:
+            severity: critical
+            origin: lab
+          annotations:
+            summary: DHS box unreachable over the tailnet
+        # A dump older than a day and a bit means the nightly run is failing,
+        # and VolSync keeps backing up a stale file without complaint.
+        - alert: DhsDumpStale
+          expr: >-
+            time() - kube_cronjob_status_last_successful_time{namespace="dhs", cronjob="postgres-dump"} > 26 * 3600
+          for: 15m
+          labels:
+            severity: warning
+            origin: lab
+          annotations:
+            summary: No successful DHS postgres dump in over 26h
