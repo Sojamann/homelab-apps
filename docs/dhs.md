@@ -70,8 +70,57 @@ Not in this repo; done by hand:
 
 ## Restore
 
-Into a running postgres on the box, from a restored `postgres.dump`:
+Untested end to end; the dump itself is drilled (below). The box's postgres is
+overwritten in place, so stop the app first.
+
+1. **Pick the dump.** Last night's is still on `postgres-dump`. Anything older,
+   or a lost PVC, comes out of restic: a `ReplicationDestination` with
+   `copyMethod: Direct` into a new empty PVC, `restic.restoreAsOf` for a point
+   in time -- see [volsync](./volsync.md#restore), and the drill below for a
+   working example. Without the cluster, plain restic against
+   `k8s-backups/dhs/postgres-dump`.
+2. **Get it out of the cluster.** A pod mounting the PVC read-only, then:
+   ```sh
+   kubectl -n dhs run fetch --image=docker.io/library/busybox:1.37 --restart=Never \
+     --overrides='{"spec":{"volumes":[{"name":"d","persistentVolumeClaim":{"claimName":"postgres-dump","readOnly":true}}],
+       "containers":[{"name":"fetch","image":"docker.io/library/busybox:1.37","command":["sleep","3600"],
+       "volumeMounts":[{"name":"d","mountPath":"/dump","readOnly":true}]}]}}'
+   kubectl -n dhs cp fetch:/dump/postgres.dump ./postgres.dump
+   kubectl -n dhs delete pod fetch
+   ```
+3. **Onto the box**, over the tailnet -- `group:admin` reaches `tag:public`:
+   ```sh
+   scp postgres.dump <user>@dhs.<tailnet>:
+   ```
+4. **Restore**, as the superuser, with the app stopped and postgres running.
+   `--single-transaction`: it lands whole or not at all.
+   ```sh
+   docker compose stop <app>
+   docker compose exec -T <postgres> \
+     pg_restore -U postgres -d postgres --clean --if-exists --single-transaction < postgres.dump
+   docker compose start <app>
+   ```
+   Flyway finds its history table restored with the data and migrates nothing.
+5. **Check** row counts against the drill's query below.
+
+On a fresh box: the dump holds no roles. The image creates `POSTGRES_USER` on
+first start, which owns everything here; the backup role (above) has to be
+created again. The server must be the dump's major (17) or newer.
+
+## Drill
+
+Run once on 2026-10-27, in `dhs`: a `ReplicationDestination` (`trigger.manual`,
+`copyMethod: Direct`, uid 70) into a throwaway `fast` PVC `drill`, then a pod
+on `postgres:17.11-alpine` that mounts it read-only, starts a socket-only
+postgres in an `emptyDir` and restores into it:
 
 ```sh
-pg_restore --clean --if-exists -d postgres postgres.dump
+initdb -D /tmp/pg
+pg_ctl -D /tmp/pg -o "-k /tmp -c listen_addresses=''" -w start
+createdb -h /tmp drill
+pg_restore -h /tmp -d drill --no-owner --no-privileges --exit-on-error /restore/postgres.dump
+psql -h /tmp -d drill -c "select schemaname, relname, n_live_tup from pg_stat_user_tables order by 1,2"
 ```
+
+Result: clean restore, 12 tables (53 users, flyway at 5 migrations).
+Afterwards `kubectl -n dhs delete pod/drill replicationdestination/drill pvc/drill`.
