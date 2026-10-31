@@ -3,14 +3,9 @@
 kube-prometheus-stack: Prometheus, Alertmanager and Grafana, plus the exporters
 for the cluster itself.
 
-Grafana is `grafana.${app_domain}`: anonymous visitors are Viewers, "Sign in
-with Pocket ID" maps the `admins` group to Admin and everyone else to Viewer,
-and the admin form stays as break-glass -- the admin is in OpenBao
-(`bao kv get kv/monitoring/grafana`). Sessions die with the pod, as the
-emptyDir does. Alertmanager is
-`alertmanager.${app_domain}` with no auth at all -- every LAN and tailnet device
-can silence an alert, which is the price of being able to silence one from a
-phone. Prometheus has neither auth nor route:
+Rules, scrapes and dashboards for things no app owns live in
+`infrastructure/configs/`; an app's own sit beside it. Prometheus has no
+route.
 
 ```mermaid
 graph TD
@@ -46,59 +41,33 @@ graph TD
   PROM -->|scrapes :9100 - :9221<br/>via metrics-allow-proxmox| PX["Proxmox hosts<br/>node-exporter + pve-exporter"]
 
   AM -->|critical: sound<br/>everything else: silent| TG["Telegram group"]
-  AM -->|Watchdog, every 5m| HB["heartbeat<br/>somewhere outside the lab"]
+  AM -->|Watchdog, every 5m| HB["Cronitor heartbeat<br/>outside the lab, emails on silence"]
 
-  GR -->|OIDC| PID["Pocket ID<br/>login.app_domain - see pocket-id.md"]
-  GW["Gateway lab"] -->|grafana.app_domain| GR
-  GW -->|alertmanager.app_domain| AM
+  GR -->|OIDC| PID["Pocket ID<br/>login.&lt;app_domain&gt; - see pocket-id.md"]
+  GW["Gateway lab"] -->|grafana.&lt;app_domain&gt;| GR
+  GW -->|alertmanager.&lt;app_domain&gt;| AM
 ```
 
-> **Storage Note** data is dropped after 30 days or when it reaches 18GB.
+Why it looks like this:
 
-## Dashboards
+- **Retention 30d or 18GB**, whichever first, on a 20Gi `fast` PVC -- the size
+  cap keeps the TSDB inside its volume; long history is not needed.
+- **Dashboards:** the chart's own are off. Ours are JSON files flat in
+  `infrastructure/configs/dashboards/`, each a `configMapGenerator` entry
+  labelled `grafana_dashboard: "1"`; the sidecar picks them up in any
+  namespace. Grafana is stateless (emptyDir), so the files are the truth.
+- **Alertmanager secrets are mounted as files** (`kv/monitoring/alerting`:
+  bot token, heartbeat URL) and read via `*_file` options; the Telegram chat
+  id travels in `cluster-vars` -- no credential, but it names a private group.
+- **Heartbeat is Cronitor**: `Watchdog` pings the URL the vault holds; when
+  pings stop, Cronitor emails.
+- **Every lab rule carries `origin: lab`**, which the chart's ~134 do not --
+  the one matcher that finds or routes ours.
+- **Prometheus selects across all namespaces** (`*SelectorNilUsesHelmValues:
+  false`), so a ServiceMonitor, PodMonitor, ScrapeConfig or PrometheusRule
+  beside its app is picked up.
+- **Grafana's own alerting is unused**: a rule made in its UI dies with the
+  pod.
 
-The chart's own are off. Ours live flat in `infrastructure/configs/dashboards/`,
-no folders:
-
-| Dashboard    | For                                                                 |
-|--------------|---------------------------------------------------------------------|
-| Lab (home)   | traffic lights only -- NAS pools + host, Proxmox hosts + storage, k8s nodes, the DHS box: status, CPU, memory, disk, network errors/drops; each links to its detail dashboard |
-| K8s Overview | the quick look -- CPU, memory (usage + requests), network, disk per node; what each PVC holds |
-| K8s Detail   | digging in -- stats, per namespace, per pod CPU/throttling/memory, a pods table |
-| NAS          | pool fill + state, CPU, memory with ARC split out, ARC hit ratio, network |
-| Garage       | upstream's: API requests + errors, disk I/O, resync and table queues |
-| Proxmox      | quorum, storage fill, CPU, memory (usage + assigned), root fs, network per host; a guests table |
-
-Anything else is in Prometheus and reachable through Explore.
-
-**Changing one:** edit in the UI, Share -> Export -> paste over the JSON file,
-commit. Grafana is stateless, so an unexported edit is gone on the next restart.
-A new dashboard is a new file plus a `configMapGenerator` entry.
-
-## Alerting
-
-Everything lands in one Telegram group. `severity: critical` arrives with a
-sound and repeats every 4h; everything else arrives silently and repeats every
-12h -- a notification per warning is how you learn to swipe warnings away. Too
-noisy is fixed in the rule, not in the routing.
-
-`Watchdog` is the exception. It fires permanently by design, so it is routed to
-a heartbeat URL instead of the chat: when the pings stop, because Prometheus or
-the cluster or the WAN is what broke, whoever hosts that URL is what notices --
-from outside the lab, which nothing in this diagram can do. Any service that
-complains when a ping stops will do, and which one is in use is a fact about
-`secrets/vault.yml`, not about this repo.
-
-Two values have to exist in `secrets/vault.yml` before any of it works: a
-Telegram bot token with the id of the group it posts into, and that heartbeat
-URL. Both are written into OpenBao by the platform layer; the bot
-token and the URL are mounted as files, the chat id travels in `cluster-vars`
-because it is no credential but names a private group.
-
-Every rule in `infrastructure/configs` carries `origin: lab`, which the ~134 the
-chart ships do not. It is how you find your own among them -- `label:origin=lab`
-in Grafana, `origin="lab"` in Alertmanager -- and a matcher away from routing
-them differently.
-
-Grafana's own alerting is unused. One alerting engine, and it is Prometheus:
-Grafana is stateless here, so a rule made in its UI is gone on the next restart.
+Access, routing, alerts, dashboards and how to change them:
+[Monitoring](../../docs/src/monitoring.md).

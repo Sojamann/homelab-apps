@@ -1,5 +1,5 @@
 # Nightly backup of the config volume -- see vaultwarden/backup.yaml for the
-# why of each field. Restore and drill: docs/volsync.md.
+# why of each field. Restore and drill: lab docs/src/backups.md.
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:

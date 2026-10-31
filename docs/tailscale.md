@@ -25,14 +25,15 @@ graph TD
 ## Access
 
 What a proxy may reach is decided by the tailnet policy, not here -- see
-[network](../../network/README.md#tailnet). `tag:k8s` gets only named ports on
-named tags.
+[Networking](../../docs/src/networking.md#tailscale). `tag:k8s` gets only
+named ports on named tags.
 
 ## Reaching a machine
 
 An `ExternalName` Service beside the consumer, in its namespace -- e.g.
-`apps/dhs/egress.yaml`. `${tailnet_domain}` comes from `cluster-vars`: it names
-the tailnet, and this repo is public.
+`apps/dhs/egress.yaml`. The tailnet suffix is substituted from
+`cluster-vars` (`${tailnet_domain}`): it names the tailnet, and this repo is
+public.
 
 ```yaml
 apiVersion: v1

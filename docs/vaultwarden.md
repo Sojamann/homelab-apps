@@ -1,8 +1,6 @@
 # Vaultwarden
 
-Bitwarden-compatible password manager for the household; the official
-Bitwarden apps and browser extensions point at `https://passwords.${app_domain}`.
-LAN and tailnet only, like everything behind the gateway.
+Bitwarden-compatible password manager for the household.
 
 ```mermaid
 graph TD
@@ -13,7 +11,7 @@ graph TD
     PVC[/"PVC vaultwarden-data<br/>RWO - fast - 1Gi"/] -->|/data| SRV
     RS["ReplicationSource vaultwarden-data<br/>restic - daily"] -.->|clones| PVC
     SEC -->|ADMIN_TOKEN| SRV
-    RT["HTTPRoute vaultwarden<br/>passwords.$app_domain - timeout 0s"] -->|backendRef| SVC
+    RT["HTTPRoute vaultwarden<br/>passwords.&lt;app_domain&gt; - timeout 0s"] -->|backendRef| SVC
   end
 
   BAO["OpenBao<br/>kv/vaultwarden/app"] -.->|ClusterSecretStore openbao| ES
@@ -24,59 +22,20 @@ graph TD
   class GW,BAO,GA ext;
 ```
 
-## Storage
+Why it looks like this:
 
-One `fast` PVC for all of `/data`: `db.sqlite3` (SQLite, WAL), `rsa_key.pem`
-(signs login tokens), `attachments/`, `sends/`, `icon_cache/`. A block
-device, so none of SQLite's NFS caveats apply.
+- **`fast`**: all of `/data` (`db.sqlite3`, `rsa_key.pem`, `attachments/`,
+  `sends/`, `icon_cache/`) on a block device, so none of SQLite's NFS caveats
+  apply. `fast` has no copy elsewhere, hence `backup.yaml` -- see
+  [volsync](./volsync.md). One pod, `Recreate`.
+- **`ADMIN_TOKEN`** is an argon2id hash from `kv/vaultwarden/app`, never the
+  plaintext.
+- **`SIGNUPS_ALLOWED=false`, `INVITATIONS_ALLOWED=true`**, no SMTP: an account
+  exists only for an invited email.
+- **`DOMAIN`** binds WebAuthn credentials to the URL; **`IP_HEADER:
+  X-Forwarded-For`**, which Envoy appends, so rate limits see the real IP.
+- **`timeout 0s` on the HTTPRoute**: Envoy's 15s default cuts off big
+  attachments.
 
-Backed up nightly by VolSync (`backup.yaml`) into Garage, restore and
-retention in [volsync.md](./volsync.md). The vault items also survive in
-every client's offline cache; attachments and Sends only in the backup.
-
-1Gi is plenty for the db and icons; attachments are what grows. `fast`
-allows expansion -- raise the request in `storage.yaml`.
-`KubePersistentVolumeFillingUp` warns first.
-
-## Accounts
-
-No signups and no SMTP. Invite an email in `/admin` -> Users; without mail
-the invite is not sent, but that email may now register at the login page.
-Each user then sets a master password and enrolls a passkey as 2FA
-(Settings -> Security -> Two-step login -> FIDO2 WebAuthn).
-
-The master password is the vault's encryption key: forgotten, that vault is
-gone. `/admin` can delete the account, never open it.
-
-## Admin token
-
-`/admin` takes the plaintext; the app reads only its argon2id hash from
-`ADMIN_TOKEN`. The plaintext lives offline -- not in Vaultwarden itself, or a
-broken Vaultwarden locks out its own recovery. The hash sits in
-`secrets/vault.yml` as `vaultwarden_admin_token_hash`, from where
-`platform_secrets.tf` writes it to OpenBao at `kv/vaultwarden/app`.
-
-Set or rotate:
-
-```sh
-docker run --rm -it docker.io/vaultwarden/server:<tag> /vaultwarden hash
-ansible-vault edit secrets/vault.yml      # vaultwarden_admin_token_hash: $argon2id$... (unquoted)
-mise run platform apply
-kubectl -n vaultwarden annotate externalsecret vaultwarden force-sync=$(date +%s) --overwrite
-kubectl -n vaultwarden rollout restart deploy/vaultwarden   # env is read at start
-```
-
-Settings saved in `/admin` land in `/data/config.json` and override env.
-
-## Not enabled
-
-- **SSO via Pocket ID.** With password login kept as break-glass it adds
-  convenience, not security. Later: a Pocket ID client, `SSO_ENABLED`,
-  `SSO_AUTHORITY=https://login.${app_domain}`, the client id/secret through
-  OpenBao.
-- **Mobile push.** Phones sync on open and periodically instead. Later:
-  installation id/key from `bitwarden.com/host`, `PUSH_ENABLED`.
-
-## Updates
-
-The image tag is pinned; Renovate proposes bumps. Migrations run on start.
+Accounts, the admin token, restore and updates:
+[Vaultwarden](../../docs/src/workloads/vaultwarden.md).

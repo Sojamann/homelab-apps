@@ -139,11 +139,10 @@ spec:
                 message: '{{ template "telegram.lab.message" . }}'
                 disable_notifications: false
 
-          # Watchdog turned into a heartbeat. When the pings stop -- because
-          # Prometheus, the cluster or the WAN is what broke -- whoever hosts
-          # the URL is what notices, from outside the lab. Nothing inside it
-          # can, which is the whole point, so the service behind the URL is
-          # deliberately not named anywhere in here.
+          # Watchdog turned into a heartbeat to Cronitor. When the pings stop
+          # -- because Prometheus, the cluster or the WAN is what broke --
+          # Cronitor notices from outside the lab and emails. Nothing inside
+          # the lab can, which is the whole point.
           - name: heartbeat
             webhook_configs:
               - url_file: /etc/alertmanager/secrets/alerting/heartbeat-url

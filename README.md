@@ -32,7 +32,7 @@ graph TD
   APPS -->|applies| SY["syncthing<br/>./apps/syncthing<br/>prune - wait"]
   APPS -->|applies| VW["vaultwarden<br/>./apps/vaultwarden<br/>prune - wait"]
 ```
-> post-build applies `cluster-vars` secret providing the domains and the tailnet suffix
+> every Kustomization substitutes from the `cluster-vars` Secret (domains, tailnet suffix, Telegram chat id), written by the platform layer
 
 ## Infrastructure
 Shared services the apps depend on being installed, operators and the like.
@@ -47,48 +47,41 @@ chart that defines its kind:
   app instead -- unless the app is itself in `controllers/`, like Pocket ID's
   backup in `configs/pocket-id/`.
 
-| Name                  | Description       | Namespace        | Version                        | Docs                         |
-|-----------------------|-------------------|------------------|--------------------------------|------------------------------|
-| cloudnative-pg        | postgres operator | `cnpg-system`    | chart 0.29.0 (operator 1.30)   |                              |
-| kube-prometheus-stack | metrics + grafana | `monitoring`     | chart 91.3.0 (operator 0.94.0) | [link](./docs/monitoring.md) |
-| pocket-id             | OIDC provider     | `pocket-id`      | v2.18.0                        | [link](./docs/pocket-id.md)  |
-| tailscale             | tailnet egress    | `tailscale`      | chart 1.104.2                  | [link](./docs/tailscale.md)  |
-| volsync               | PVC backups       | `volsync-system` | chart 0.16.0                   | [link](./docs/volsync.md)    |
-| zot                   | OCI registry      | `zot`            | v2.1.22                        | [link](./docs/zot.md)        |
+| Name                  | Description       | Namespace        | Docs                         |
+|-----------------------|-------------------|------------------|------------------------------|
+| cloudnative-pg        | postgres operator | `cnpg-system`    | [topic](../docs/src/platform/cloudnative-pg.md) |
+| kube-prometheus-stack | metrics + grafana | `monitoring`     | [link](./docs/monitoring.md) |
+| pocket-id             | OIDC provider     | `pocket-id`      | [link](./docs/pocket-id.md)  |
+| tailscale             | tailnet egress    | `tailscale`      | [link](./docs/tailscale.md)  |
+| volsync               | PVC backups       | `volsync-system` | [link](./docs/volsync.md)    |
+| zot                   | OCI registry      | `zot`            | [link](./docs/zot.md)        |
 
-Grafana is served at `grafana.${app_domain}`, Alertmanager at
-`alertmanager.${app_domain}`, the registry at `registry.${app_domain}`, Pocket
-ID at `login.${app_domain}`.
+Versions live in the manifests only (`repository.yaml` / `release.yaml` /
+`server.yaml` per directory), so a Renovate bump cannot leave a stale copy.
+
+Grafana is served at `grafana.<app_domain>`, Alertmanager at
+`alertmanager.<app_domain>`, the registry at `registry.<app_domain>`, Pocket
+ID at `login.<app_domain>`.
 
 ## Updates
-Renovate (`renovate.json`) opens a PR when a chart version (`OCIRepository`
-tag or `HelmRelease` on a `HelmRepository`) or a
-public image has a new release that is 3 days old. Merging is deploying --
-Flux reconciles `main`.
-Images in our own zot registry are skipped; `mise run image` bumps those.
+Renovate (`renovate.json`) bumps chart versions and public images; merging is
+deploying. Policy: [Maintenance](../docs/src/maintenance.md#renovate).
 
 ## Apps
-Every app is its own flux `Kustomization` so it is reconsiled seperately and
-is deployed in it's own namespace which may hold the app itself together
-with secrets and storage definitions.
+Every app is its own Flux `Kustomization`, so it reconciles separately, and
+lives in its own namespace together with its secrets and storage.
 
 | Name               | Description                    | Domain                      | Docs                                 |
 |--------------------|--------------------------------|-----------------------------|--------------------------------------|
-| dhs                | Backups + scrape of the DHS box, over the tailnet | --       | [link](./docs/dhs.md)                |
-| glance             | Lab start page, release feed   | `dash.${app_domain}`        | [link](./docs/glance.md)             |
-| kassenbuch         | Kassenbuch of the Verein       | `kassenbuch.${app_domain}`  | [link](./docs/kassenbuch.md)         |
-| supplement-tracker | Household supplement tracker   | `supplements.${app_domain}` | [link](./docs/supplement-tracker.md) |
-| syncthing          | File sync hub, self-hosted cloud | `sync.${app_domain}`      | [link](./docs/syncthing.md)          |
-| vaultwarden        | Household password manager     | `passwords.${app_domain}`   | [link](./docs/vaultwarden.md)        |
+| dhs                | Backups + scrape of the DHS box, over the tailnet | --                 | [link](./docs/dhs.md)                |
+| glance             | Lab start page, release feed   | `dash.<app_domain>`         | [link](./docs/glance.md)             |
+| kassenbuch         | Kassenbuch of the Verein       | `kassenbuch.<app_domain>`   | [link](./docs/kassenbuch.md)         |
+| supplement-tracker | Household supplement tracker   | `supplements.<app_domain>`  | [link](./docs/supplement-tracker.md) |
+| syncthing          | File sync hub, self-hosted cloud | `sync.<app_domain>`       | [link](./docs/syncthing.md)          |
+| vaultwarden        | Household password manager     | `passwords.<app_domain>`    | [link](./docs/vaultwarden.md)        |
 
+App pages: [Workloads](../docs/src/workloads/index.md).
 
 - **`enableServiceLinks: false`, always.** The kubelet injects a Docker-link
   variable per Service in the namespace -- `{SERVICE_NAME}_PORT=tcp://ip:port`
   and friends. Which might lead to unwanted configurations.
-
-## Moving a PVC between storage classes
-`storageClassName` is immutable, so the data is copied into a new PVC with the
-app scaled to 0 and Flux suspended. Then two pushes: first switch to the new
-PVC while keeping the old one in git with `kustomize.toolkit.fluxcd.io/prune:
-disabled`, then drop it from git and delete it by hand. Set with `kubectl
-annotate` instead, Flux strips the annotation and prunes the PVC and its data.

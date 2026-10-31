@@ -1,7 +1,7 @@
 # Nightly backup of pocket-id-state. Here, not beside the app in controllers: the
 # kinds below are installed in that same pass.
 # restic to Garage, credentials shared by every backed-up PVC and written in
-# platform_secrets.tf. Restore and drill: docs/volsync.md.
+# platform_secrets.tf. Restore and drill: lab docs/src/backups.md.
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:

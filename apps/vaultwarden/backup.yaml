@@ -1,6 +1,6 @@
 # Nightly backup of the whole /data volume.
 # restic to Garage, credentials shared by every backed-up PVC and written in
-# platform_secrets.tf. Restore and drill: docs/volsync.md.
+# platform_secrets.tf. Restore and drill: lab docs/src/backups.md.
 apiVersion: external-secrets.io/v1
 kind: ExternalSecret
 metadata:
