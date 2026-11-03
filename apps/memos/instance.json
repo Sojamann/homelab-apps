@@ -30,7 +30,9 @@
       "name": "instance/settings/GENERAL",
       "generalSetting": {
         "disallowPasswordAuth": true,
-        "disallowUserRegistration": false
+        "disallowUserRegistration": false,
+        "disallowChangeUsername": true,
+        "weekStartDayOffset": 1
       }
     },
     {
