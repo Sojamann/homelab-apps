@@ -13,10 +13,18 @@ pages:
             groups:
               - title: Apps
                 links:
+                  - title: Home Assistant
+                    description: Home automation
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/home-assistant.svg
+                    url: http://ha.${lab_domain}:8123
                   - title: Kassenbuch
                     description: Kassenbuch of the Verein
                     icon: mdi:cash-register
                     url: https://kassenbuch.${app_domain}
+                  - title: Memos
+                    description: Household notes
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/memos.svg
+                    url: https://notes.${app_domain}
                   - title: Supplement Tracker
                     description: Household supplements
                     icon: mdi:pill
