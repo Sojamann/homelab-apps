@@ -1,0 +1,55 @@
+{
+  "identityProviders": [
+    {
+      "name": "identity-providers/pocket-id",
+      "type": "OAUTH2",
+      "title": "Pocket ID",
+      "config": {
+        "oauth2Config": {
+          "clientId": "$${env:OIDC_CLIENT_ID}",
+          "clientSecret": "$${env:OIDC_CLIENT_SECRET}",
+          "authUrl": "https://login.${app_domain}/authorize",
+          "tokenUrl": "https://login.${app_domain}/api/oidc/token",
+          "userInfoUrl": "https://login.${app_domain}/api/oidc/userinfo",
+          "scopes": ["openid", "profile", "email"],
+          "fieldMapping": {
+            "identifier": "preferred_username",
+            "displayName": "name",
+            "email": "email"
+          }
+        }
+      }
+    }
+  ],
+  "instanceSettings": [
+    {
+      "name": "instance/settings/ACCESS",
+      "accessSetting": { "accessMode": "INSTANCE_ACCESS_MODE_PRIVATE" }
+    },
+    {
+      "name": "instance/settings/GENERAL",
+      "generalSetting": {
+        "disallowPasswordAuth": true,
+        "disallowUserRegistration": false
+      }
+    },
+    {
+      "name": "instance/settings/STORAGE",
+      "storageSetting": {
+        "storages": [{ "id": "local", "name": "NAS", "type": "LOCAL" }],
+        "defaultStorageId": "local"
+      }
+    }
+  ],
+  "users": [
+    {
+      "name": "users/admin",
+      "username": "admin",
+      "role": "ADMIN",
+      "password": "$${env:ADMIN_PASSWORD}"
+    }
+  ],
+  "lifecycle": [
+    { "resource": "users/admin", "preventDestroy": true, "writeOnlyVersion": 1 }
+  ]
+}

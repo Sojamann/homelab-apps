@@ -28,6 +28,7 @@ graph TD
   APPS -->|applies| DH["dhs<br/>./apps/dhs<br/>prune - wait"]
   APPS -->|applies| GL["glance<br/>./apps/glance<br/>prune - wait"]
   APPS -->|applies| KB["kassenbuch<br/>./apps/kassenbuch<br/>prune - wait"]
+  APPS -->|applies| MM["memos<br/>./apps/memos<br/>prune - wait"]
   APPS -->|applies| ST["supplement-tracker<br/>./apps/supplement-tracker<br/>prune - wait"]
   APPS -->|applies| SY["syncthing<br/>./apps/syncthing<br/>prune - wait"]
   APPS -->|applies| VW["vaultwarden<br/>./apps/vaultwarden<br/>prune - wait"]
@@ -76,6 +77,7 @@ lives in its own namespace together with its secrets and storage.
 | dhs                | Backups + scrape of the DHS box, over the tailnet | --                 | [link](./docs/dhs.md)                |
 | glance             | Lab start page, release feed   | `dash.<app_domain>`         | [link](./docs/glance.md)             |
 | kassenbuch         | Kassenbuch of the Verein       | `kassenbuch.<app_domain>`   | [link](./docs/kassenbuch.md)         |
+| memos              | Notes, on trial                | `notes.<app_domain>`        | [link](./docs/memos.md)              |
 | supplement-tracker | Household supplement tracker   | `supplements.<app_domain>`  | [link](./docs/supplement-tracker.md) |
 | syncthing          | File sync hub, self-hosted cloud | `sync.<app_domain>`       | [link](./docs/syncthing.md)          |
 | vaultwarden        | Household password manager     | `passwords.<app_domain>`    | [link](./docs/vaultwarden.md)        |

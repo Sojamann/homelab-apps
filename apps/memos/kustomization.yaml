@@ -1,0 +1,28 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - secret.yaml
+  - storage.yaml
+  - backup.yaml
+  - server.yaml
+  - route.yaml
+# Memos' declarative config (instance.json): applied on every start, and the API refuses
+# changes to what it declares -- these settings are git's, not the admin UI's.
+# `$${env:X}` is Flux's escape; memos sees `${env:X}` and reads the env var.
+#
+# Who gets in is Pocket ID's call (the client's allowed groups): registration
+# stays open so a first SSO login creates the account, and password auth is
+# off -- which spares admins, so `admin` is the break-glass login. The SSO
+# username is `preferred_username`, also the link key: renaming a user in
+# Pocket ID gives them a new, empty account here.
+#
+# `writeOnlyVersion`: the admin password is sent on create only; bump it to
+# push a rotated one.
+# The name's hash suffix rolls the pod on every change -- it is read at
+# startup only.
+configMapGenerator:
+  - name: memos-config
+    namespace: memos
+    files:
+      - instance.json

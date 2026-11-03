@@ -1,0 +1,96 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memos
+  namespace: memos
+spec:
+  replicas: 1
+  # SQLite has one writer, and the data volume is RWO.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: memos
+  template:
+    metadata:
+      labels:
+        app: memos
+    spec:
+      enableServiceLinks: false
+      # Started as non-root, the entrypoint skips its chown + su-exec.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: memos
+          image: docker.io/neosmemo/memos:26.11.0
+          ports:
+            - name: http
+              containerPort: 5230
+          envFrom:
+            - secretRef:
+                name: memos
+          env:
+            - name: MEMOS_INSTANCE_URL
+              value: https://notes.${app_domain}
+
+          startupProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 5
+            failureThreshold: 24
+          readinessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 30
+          livenessProbe:
+            httpGet: { path: /healthz, port: http }
+            periodSeconds: 30
+            failureThreshold: 5
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+
+          # Attachments land under `assets/` of the data dir (memos' default
+          # path template), so that one directory is the NAS.
+          volumeMounts:
+            - name: data
+              mountPath: /var/opt/memos
+            - name: assets
+              mountPath: /var/opt/memos/assets
+            - name: config
+              mountPath: /etc/memos/config
+              readOnly: true
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: memos-data
+        - name: assets
+          persistentVolumeClaim:
+            claimName: memos-assets
+        - name: config
+          configMap:
+            name: memos-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: memos
+  namespace: memos
+spec:
+  selector:
+    app: memos
+  ports:
+    - name: http
+      port: 5230
+      targetPort: http
