@@ -25,8 +25,8 @@ graph TD
 Why it looks like this:
 
 - **`bulk`, not `fast`:** `/data` (`kassenbuch.db`, `belege/`, `exports/`)
-  holds records with a retention duty, so it sits on the mirror under the NAS
-  snapshots instead of the unmirrored NVMe. The 10Gi is a label.
+  holds records with a retention duty, so it sits under the NAS snapshots,
+  which `fast` cannot have. The 10Gi is a label.
 - **One replica, `Recreate`:** SQLite on NFS holds only with one pod on one
   node over NFSv4.1.
 - **`timeout 0s` on the HTTPRoute:** Envoy's 15s default cuts off large Beleg
