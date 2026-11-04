@@ -16,45 +16,5 @@
     "managerFilePatterns": [
       "/\\.ya?ml$/"
     ]
-  },
-  "customManagers": [
-    {
-      "customType": "regex",
-      "description": "A CNPG Cluster's imageName: not an `image:` key, so the kubernetes manager misses it",
-      "managerFilePatterns": [
-        "/\\.ya?ml$/"
-      ],
-      "matchStrings": [
-        "imageName:\\s*(?<depName>[^:\\s]+):(?<currentValue>\\S+)"
-      ],
-      "datasourceTemplate": "docker"
-    }
-  ],
-  "packageRules": [
-    {
-      "description": "AFFiNE's postgres and its dump image move together: pg_dump must be the server's major",
-      "matchFileNames": [
-        "apps/affine/**"
-      ],
-      "matchPackageNames": [
-        "ghcr.io/cloudnative-pg/postgresql",
-        "docker.io/library/postgres"
-      ],
-      "groupName": "affine postgres"
-    },
-    {
-      "description": "A major is a CNPG in-place major upgrade: waits for approval on the dependency dashboard",
-      "matchFileNames": [
-        "apps/affine/**"
-      ],
-      "matchPackageNames": [
-        "ghcr.io/cloudnative-pg/postgresql",
-        "docker.io/library/postgres"
-      ],
-      "matchUpdateTypes": [
-        "major"
-      ],
-      "dependencyDashboardApproval": true
-    }
-  ]
+  }
 }
