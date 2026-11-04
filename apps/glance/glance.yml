@@ -25,6 +25,10 @@ pages:
                     description: Household notes
                     icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/memos.svg
                     url: https://notes.${app_domain}
+                  - title: AFFiNE
+                    description: Household docs and whiteboards
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/affine.svg
+                    url: https://affine.${app_domain}
                   - title: Supplement Tracker
                     description: Household supplements
                     icon: mdi:pill

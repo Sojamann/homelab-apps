@@ -1,0 +1,112 @@
+# Runs as the image's `node` user (uid 1000), so `~/.affine` is
+# /home/node/.affine. Root filesystem read-only: at startup the server writes
+# its GraphQL schema to /app/src, hence that emptyDir.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: affine
+  namespace: affine
+spec:
+  replicas: 1
+  # One migrator at a time.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: affine
+  template:
+    metadata:
+      labels:
+        app: affine
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      # Schema and data migrations, upstream's predeploy step; idempotent.
+      initContainers:
+        - name: migrate
+          image: ghcr.io/toeverything/affine:0.27.4
+          command: [node, ./scripts/self-host-predeploy.js]
+          env: &env
+            - name: HOME
+              value: /home/node
+            - name: DEPLOYMENT_TYPE
+              value: selfhosted
+            - name: REDIS_SERVER_HOST
+              value: valkey
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef: { name: affine-pg-app, key: uri }
+          securityContext: &securityContext
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts: &mounts
+            - name: config
+              mountPath: /home/node/.affine/config
+              readOnly: true
+            - name: storage
+              mountPath: /home/node/.affine/storage
+            - name: schema
+              mountPath: /app/src
+            - name: tmp
+              mountPath: /tmp
+      containers:
+        - name: affine
+          image: ghcr.io/toeverything/affine:0.27.4
+          ports:
+            - name: http
+              containerPort: 3010
+          env: *env
+
+          startupProbe:
+            httpGet: { path: /info, port: http }
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet: { path: /info, port: http }
+            periodSeconds: 30
+          livenessProbe:
+            httpGet: { path: /info, port: http }
+            periodSeconds: 30
+            failureThreshold: 5
+
+          securityContext: *securityContext
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 512Mi
+
+          volumeMounts: *mounts
+      volumes:
+        - name: config
+          secret:
+            secretName: affine-config
+        - name: storage
+          persistentVolumeClaim:
+            claimName: affine-storage
+        - name: schema
+          emptyDir: {}
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: affine
+  namespace: affine
+spec:
+  selector:
+    app: affine
+  ports:
+    - name: http
+      port: 3010
+      targetPort: http
