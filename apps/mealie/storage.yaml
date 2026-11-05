@@ -1,0 +1,14 @@
+# Everything mealie keeps: `mealie.db` (SQLite), recipe images under
+# `recipes/`, and the token-signing secrets it generates on first start. On
+# `fast`, as SQLite wants a block device; backed up by backup.yaml.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mealie-data
+  namespace: mealie
+spec:
+  accessModes: [ReadWriteOnce]
+  storageClassName: fast
+  resources:
+    requests:
+      storage: 5Gi

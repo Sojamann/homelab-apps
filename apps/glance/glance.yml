@@ -21,6 +21,10 @@ pages:
                     description: Kassenbuch of the Verein
                     icon: mdi:cash-register
                     url: https://kassenbuch.${app_domain}
+                  - title: Mealie
+                    description: Household recipes
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/mealie.svg
+                    url: https://recipes.${app_domain}
                   - title: Memos
                     description: Household notes
                     icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/memos.svg

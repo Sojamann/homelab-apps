@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mealie
+  namespace: mealie
+spec:
+  replicas: 1
+  # SQLite has one writer, and the data volume is RWO.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: mealie
+  template:
+    metadata:
+      labels:
+        app: mealie
+    spec:
+      enableServiceLinks: false
+      # Started as a uid other than root or PUID, the entrypoint skips its
+      # chown + gosu.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: mealie
+          image: ghcr.io/mealie-recipes/mealie:v3.30.0
+          ports:
+            - name: http
+              containerPort: 9000
+          envFrom:
+            - secretRef:
+                name: mealie
+          env:
+            - name: BASE_URL
+              value: https://recipes.${app_domain}
+            - name: TZ
+              value: Europe/Berlin
+            - name: ALLOW_SIGNUP
+              value: "false"
+            # UI only: the API still takes passwords. Break-glass: lab
+            # docs/src/workloads/mealie.md.
+            - name: ALLOW_PASSWORD_LOGIN
+              value: "false"
+            # Who gets in is Pocket ID's call (the client's allowed groups);
+            # `admins` there are admins here. Users are matched by email.
+            - name: OIDC_AUTH_ENABLED
+              value: "true"
+            - name: OIDC_CONFIGURATION_URL
+              value: https://login.${app_domain}/.well-known/openid-configuration
+            - name: OIDC_PROVIDER_NAME
+              value: Pocket ID
+            - name: OIDC_AUTO_REDIRECT
+              value: "true"
+            - name: OIDC_SIGNUP_ENABLED
+              value: "true"
+            - name: OIDC_SCOPES_OVERRIDE
+              value: openid profile email groups
+            - name: OIDC_ADMIN_GROUP
+              value: admins
+            - name: OIDC_REMEMBER_ME
+              value: "true"
+
+          startupProbe:
+            httpGet: { path: /api/app/about, port: http }
+            periodSeconds: 5
+            failureThreshold: 36
+          readinessProbe:
+            httpGet: { path: /api/app/about, port: http }
+            periodSeconds: 30
+          livenessProbe:
+            httpGet: { path: /api/app/about, port: http }
+            periodSeconds: 30
+            failureThreshold: 5
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+
+          resources:
+            requests:
+              cpu: 50m
+              memory: 384Mi
+
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: mealie-data
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mealie
+  namespace: mealie
+spec:
+  selector:
+    app: mealie
+  ports:
+    - name: http
+      port: 9000
+      targetPort: http
