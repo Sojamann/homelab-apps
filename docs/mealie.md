@@ -39,4 +39,21 @@ Why it looks like this:
   healthcheck) is the probe.
 - **One pod, `Recreate`**: SQLite has one writer and the data volume is RWO.
 
-Pocket ID client, users, restore: [Mealie](../../docs/src/workloads/mealie.md).
+## First deploy
+
+1. In Pocket ID: *Administration -> OIDC Clients -> Add*. Name `Mealie`,
+   callback URL `https://recipes.<app_domain>/login`, allowed groups
+   `admins`, `household`. Check each of those users has an email, marked
+   verified.
+2. Client id and secret into `secrets/vault.yml` as `mealie_oidc_client_id` /
+   `mealie_oidc_client_secret`, then `mise run platform apply`.
+3. Merge; Flux deploys.
+4. Log in through Pocket ID as a member of `admins`. A setup wizard opens --
+   Mealie shows it to admins while its seeded user exists. Skip it (*already
+   set up, bring me to the homepage*): its account step edits *your* SSO
+   user, and a changed email breaks the link.
+5. In *Admin -> Users*, delete `changeme@example.com` -- Mealie seeds it with
+   the password `MyPassword`, and the API accepts it until it is gone. The
+   wizard goes with it.
+
+Users, break-glass, restore: [Mealie](../../docs/src/workloads/mealie.md).
