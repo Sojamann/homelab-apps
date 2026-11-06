@@ -1,0 +1,29 @@
+# vlagent as a DaemonSet: tails /var/log/containers on each node and ships to
+# VictoriaLogs. Every namespace, no excludes -- the platform's logs are the
+# ones wanted when it breaks; the server's size cap protects the disk.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: vlagent
+  namespace: monitoring
+spec:
+  interval: 1h
+  # Its ServiceMonitor/PodMonitor CRDs come with that chart.
+  dependsOn:
+    - name: kube-prometheus-stack
+  chartRef:
+    kind: OCIRepository
+    name: victoria-logs-collector
+  values:
+    fullnameOverride: vlagent
+    remoteWrite:
+      # Buffered on the node (hostPath /var/lib/vl-collector, beside the
+      # read checkpoints) while the server is down; past 1GiB the oldest
+      # blocks go.
+      - url: http://victoria-logs-server.monitoring.svc:9428
+        maxDiskUsagePerURL: 1GiB
+    podMonitor:
+      enabled: true
+    resources:
+      requests: { cpu: 20m, memory: 64Mi }
+      limits: { memory: 512Mi }

@@ -1,7 +1,8 @@
 # Monitoring
 
 kube-prometheus-stack: Prometheus, Alertmanager and Grafana, plus the exporters
-for the cluster itself.
+for the cluster itself. Beside it, VictoriaLogs and its collector vlagent
+(`infrastructure/controllers/victoria-logs/`) for container logs.
 
 Rules, scrapes and dashboards for things no app owns live in
 `infrastructure/configs/`; an app's own sit beside it. Prometheus has no
@@ -13,7 +14,9 @@ graph TD
     OP["prometheus-operator"]
     PROM["Prometheus<br/>30d / 18GB - sc fast 20Gi"]
     AM["Alertmanager<br/>sc fast 1Gi"]
-    GR["Grafana<br/>stateless - anonymous Viewer"]
+    GR["Grafana<br/>stateless - login only, admins"]
+    VL["VictoriaLogs<br/>30d / 16GiB - sc fast 20Gi"]
+    VA["vlagent<br/>DaemonSet, /var/log/containers"]
     NE["node-exporter<br/>DaemonSet"]
     KSM["kube-state-metrics"]
     SEC[["ExternalSecret grafana-admin<br/>kv/monitoring/grafana"]]
@@ -24,6 +27,8 @@ graph TD
     SECO -->|GF_AUTH_GENERIC_OAUTH_*| GR
     SECA -->|mounted as files| AM
     GR -->|queries| PROM
+    GR -->|"queries, plugin from grafana.com"| VL
+    VA -->|"/insert/native"| VL
     PROM -->|alerts| AM
   end
 
@@ -36,6 +41,7 @@ graph TD
   PVE["infrastructure/configs/proxmox<br/>ScrapeConfig - PrometheusRule"] --> MON
   GA["infrastructure/configs/garage<br/>ScrapeConfig - PrometheusRule"] --> MON
   VS["infrastructure/configs/volsync<br/>PrometheusRule - see volsync.md"] --> MON
+  VLR["infrastructure/configs/victoria-logs<br/>PrometheusRule"] --> MON
   PROM -->|scrapes :9100| TN["TrueNAS node-exporter<br/>10.212.4.150 - see machines/truenas.md"]
   PROM -->|"scrapes :3903/metrics, bearer"| GS["Garage on the NAS<br/>s3-k8s - see machines/truenas.md"]
   PROM -->|scrapes :9100 - :9221<br/>via metrics-allow-proxmox| PX["Proxmox hosts<br/>node-exporter + pve-exporter"]
@@ -68,6 +74,11 @@ Why it looks like this:
   beside its app is picked up.
 - **Grafana's own alerting is unused**: a rule made in its UI dies with the
   pod.
+- **Logs: VictoriaLogs + vlagent**, both single binaries from one vendor, two
+  HelmReleases with `dependsOn: kube-prometheus-stack` (their monitors' CRDs).
+  No route: VictoriaLogs has no auth. Grafana's anonymous Viewer is off for
+  the same reason, and the datasource plugin is a pinned `grafana.plugins`
+  entry, downloaded on each start.
 
 Access, routing, alerts, dashboards and how to change them:
 [Monitoring](../../docs/src/monitoring.md).

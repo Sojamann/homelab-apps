@@ -1,0 +1,35 @@
+# VictoriaLogs, single binary: stores every container log in the cluster.
+# Queried from Grafana only -- no route; its own UI is a port-forward away.
+# The query API has no auth of its own, so a route would hand every log to
+# every LAN and tailnet device.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: victoria-logs
+  namespace: monitoring
+spec:
+  interval: 1h
+  # Its ServiceMonitor/PodMonitor CRDs come with that chart.
+  dependsOn:
+    - name: kube-prometheus-stack
+  chartRef:
+    kind: OCIRepository
+    name: victoria-logs-single
+  values:
+    # Service and StatefulSet `victoria-logs-server`, PVC
+    # `server-volume-victoria-logs-server-0`.
+    fullnameOverride: victoria-logs
+    server:
+      # The size cap goes first, so a full volume trims history instead of
+      # stopping ingestion. Grow the PVC (online) when
+      # VictoriaLogsRetentionShort fires; a zvol cannot shrink.
+      retentionPeriod: 30d
+      retentionDiskSpaceUsage: 16GiB
+      persistentVolume:
+        storageClassName: fast
+        size: 20Gi
+      resources:
+        requests: { cpu: 50m, memory: 128Mi }
+        limits: { memory: 1Gi }
+      serviceMonitor:
+        enabled: true

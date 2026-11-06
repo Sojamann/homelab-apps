@@ -16,5 +16,18 @@
     "managerFilePatterns": [
       "/\\.ya?ml$/"
     ]
-  }
+  },
+  "customManagers": [
+    {
+      "description": "Grafana plugins in chart values, `- <id>@<version>`, annotated with a `# renovate:` comment on the line above",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*-\\s*[\\w-]+@(?<currentValue>[^\\s@]+)"
+      ],
+      "extractVersionTemplate": "^v?(?<version>.*)$"
+    }
+  ]
 }

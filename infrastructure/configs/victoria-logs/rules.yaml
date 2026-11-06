@@ -1,0 +1,38 @@
+# `origin: lab` -- see nas/rules.yaml. All warnings: missing logs are not an
+# outage.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: victoria-logs
+  namespace: monitoring
+spec:
+  groups:
+    - name: victoria-logs
+      rules:
+        - alert: VictoriaLogsDown
+          expr: absent(up{job="victoria-logs-server"} == 1)
+          for: 10m
+          labels:
+            severity: warning
+            origin: lab
+          annotations:
+            summary: VictoriaLogs unreachable -- logs are buffered on the nodes, up to 1GiB each
+        # The 16GiB cap drops the oldest logs first; near it, retention is
+        # shorter than 30d. Grow the PVC and the cap together.
+        - alert: VictoriaLogsRetentionShort
+          expr: |
+            kubelet_volume_stats_used_bytes{namespace="monitoring", persistentvolumeclaim="server-volume-victoria-logs-server-0"}
+              > 0.9 * 16 * 1024^3
+          for: 1h
+          labels:
+            severity: warning
+            origin: lab
+          annotations:
+            summary: VictoriaLogs near its 16GiB cap -- oldest logs dropped before 30d
+        - alert: VlagentDropping
+          expr: increase(vlagent_remotewrite_packets_dropped_total[1h]) > 0
+          labels:
+            severity: warning
+            origin: lab
+          annotations:
+            summary: "vlagent on {{ $labels.pod }} dropping log blocks"

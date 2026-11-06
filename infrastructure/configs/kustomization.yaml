@@ -8,4 +8,5 @@ resources:
   - nas
   - pocket-id
   - proxmox
+  - victoria-logs
   - volsync

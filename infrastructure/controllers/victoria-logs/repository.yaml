@@ -1,0 +1,29 @@
+# Namespace `monitoring` is kube-prometheus-stack's; it is already
+# `privileged`, which the collector's hostPath mounts need.
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: victoria-logs-single
+  namespace: monitoring
+spec:
+  interval: 12h
+  url: oci://ghcr.io/victoriametrics/helm-charts/victoria-logs-single
+  ref:
+    tag: 0.13.11
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy
+---
+apiVersion: source.toolkit.fluxcd.io/v1
+kind: OCIRepository
+metadata:
+  name: victoria-logs-collector
+  namespace: monitoring
+spec:
+  interval: 12h
+  url: oci://ghcr.io/victoriametrics/helm-charts/victoria-logs-collector
+  ref:
+    tag: 0.3.8
+  layerSelector:
+    mediaType: application/vnd.cncf.helm.chart.content.v1.tar+gzip
+    operation: copy

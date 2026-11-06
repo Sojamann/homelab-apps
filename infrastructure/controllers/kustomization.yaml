@@ -13,5 +13,6 @@ resources:
   - kube-prometheus-stack
   - pocket-id
   - tailscale
+  - victoria-logs
   - volsync
   - zot
