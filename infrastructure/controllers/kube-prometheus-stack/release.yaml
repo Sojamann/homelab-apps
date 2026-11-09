@@ -212,7 +212,7 @@ spec:
       # stateless). Unreachable grafana.com -> no logs datasource, metrics fine.
       plugins:
         # renovate: datasource=github-releases depName=VictoriaMetrics/victorialogs-datasource
-        - victoriametrics-logs-datasource@0.33.1
+        - victoriametrics-logs-datasource@0.34.0
       additionalDataSources:
         - name: VictoriaLogs
           uid: victoria-logs
