@@ -1,0 +1,144 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nextcloud
+  namespace: nextcloud
+spec:
+  replicas: 1
+  # The html volume is RWO, and two versions must never upgrade the db at once.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: nextcloud
+  template:
+    metadata:
+      labels:
+        app: nextcloud
+    spec:
+      enableServiceLinks: false
+      # As www-data from the start: the entrypoint then skips its chown/su.
+      # Apache keeps port 80 through the sysctl.
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 33
+        runAsGroup: 33
+        fsGroup: 33
+        fsGroupChangePolicy: OnRootMismatch
+        sysctls:
+          - name: net.ipv4.ip_unprivileged_port_start
+            value: "0"
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: nextcloud
+          image: docker.io/library/nextcloud:35.0.1-apache
+          ports:
+            - name: http
+              containerPort: 80
+          envFrom:
+            - secretRef:
+                name: nextcloud
+          env:
+            - name: POSTGRES_HOST
+              value: nextcloud-db-rw
+            - name: POSTGRES_DB
+              value: nextcloud
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef: { name: nextcloud-db-app, key: username }
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: nextcloud-db-app, key: password }
+            # First start only: installs, with `admin` as break-glass.
+            - name: NEXTCLOUD_ADMIN_USER
+              value: admin
+            - name: NEXTCLOUD_TRUSTED_DOMAINS
+              value: files.${app_domain}
+            - name: OVERWRITEPROTOCOL
+              value: https
+            - name: OVERWRITECLIURL
+              value: https://files.${app_domain}
+            # Envoy connects from the node or a pod address.
+            - name: TRUSTED_PROXIES
+              value: 10.244.0.0/16 10.212.4.0/24
+            - name: APACHE_DISABLE_REWRITE_IP
+              value: "1"
+            - name: OIDC_DISCOVERY_URI
+              value: https://login.${app_domain}/.well-known/openid-configuration
+            - name: TZ
+              value: Europe/Berlin
+
+          # Install and `occ upgrade` run before Apache starts.
+          startupProbe:
+            httpGet:
+              path: /status.php
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: files.${app_domain}
+            periodSeconds: 10
+            failureThreshold: 120
+          readinessProbe:
+            httpGet:
+              path: /status.php
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: files.${app_domain}
+            periodSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /status.php
+              port: http
+              httpHeaders:
+                - name: Host
+                  value: files.${app_domain}
+            periodSeconds: 30
+            failureThreshold: 5
+
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+
+          volumeMounts:
+            - name: html
+              mountPath: /var/www/html
+            - name: data
+              mountPath: /var/www/html/data
+            - name: config
+              mountPath: /var/www/html/config/lab.config.php
+              subPath: lab.config.php
+            - name: config
+              mountPath: /docker-entrypoint-hooks.d/before-starting/10-lab.sh
+              subPath: lab-hook.sh
+      volumes:
+        - name: html
+          persistentVolumeClaim:
+            claimName: nextcloud-html
+        - name: data
+          persistentVolumeClaim:
+            claimName: nextcloud-data
+        - name: config
+          configMap:
+            name: nextcloud-config
+            defaultMode: 0555
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nextcloud
+  namespace: nextcloud
+spec:
+  selector:
+    app: nextcloud
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

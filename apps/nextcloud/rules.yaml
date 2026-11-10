@@ -1,0 +1,21 @@
+# `origin: lab` -- see infrastructure/configs/proxmox/rules.yaml.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: nextcloud
+  namespace: monitoring
+spec:
+  groups:
+    - name: nextcloud
+      rules:
+        # A dump older than a day and a bit means the nightly run is failing,
+        # and VolSync keeps backing up a stale file without complaint.
+        - alert: NextcloudDumpStale
+          expr: >-
+            time() - kube_cronjob_status_last_successful_time{namespace="nextcloud", cronjob="db-dump"} > 26 * 3600
+          for: 15m
+          labels:
+            severity: warning
+            origin: lab
+          annotations:
+            summary: No successful Nextcloud db dump in over 26h

@@ -1,0 +1,120 @@
+# Nightly backups of the dump (after dump.yaml) and of /var/www/html -- see
+# vaultwarden/backup.yaml for the why of each field. The files are on the NAS,
+# under ZFS snapshots. Restore and drill: lab docs/src/workloads/nextcloud.md.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: db-dump-restic
+  namespace: nextcloud
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: openbao
+  target:
+    name: db-dump-restic
+    template:
+      data:
+        RESTIC_REPOSITORY: s3:https://s3-k8s.${lab_domain}:3900/k8s-backups/nextcloud/db-dump
+        RESTIC_PASSWORD: "{{ .password }}"
+        AWS_ACCESS_KEY_ID: "{{ .accessKey }}"
+        AWS_SECRET_ACCESS_KEY: "{{ .secretKey }}"
+        AWS_DEFAULT_REGION: lab
+  data:
+    - secretKey: password
+      remoteRef:
+        key: volsync/restic
+        property: password
+    - secretKey: accessKey
+      remoteRef:
+        key: volsync/restic
+        property: access-key
+    - secretKey: secretKey
+      remoteRef:
+        key: volsync/restic
+        property: secret-key
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: db-dump
+  namespace: nextcloud
+spec:
+  sourcePVC: db-dump
+  trigger:
+    schedule: "45 1 * * *"
+  restic:
+    repository: db-dump-restic
+    copyMethod: Clone
+    storageClassName: fast
+    pruneIntervalDays: 7
+    retain:
+      daily: 14
+      weekly: 8
+      monthly: 6
+    moverSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 26
+      runAsGroup: 26
+      fsGroup: 26
+      seccompProfile:
+        type: RuntimeDefault
+---
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: nextcloud-html-restic
+  namespace: nextcloud
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: openbao
+  target:
+    name: nextcloud-html-restic
+    template:
+      data:
+        RESTIC_REPOSITORY: s3:https://s3-k8s.${lab_domain}:3900/k8s-backups/nextcloud/nextcloud-html
+        RESTIC_PASSWORD: "{{ .password }}"
+        AWS_ACCESS_KEY_ID: "{{ .accessKey }}"
+        AWS_SECRET_ACCESS_KEY: "{{ .secretKey }}"
+        AWS_DEFAULT_REGION: lab
+  data:
+    - secretKey: password
+      remoteRef:
+        key: volsync/restic
+        property: password
+    - secretKey: accessKey
+      remoteRef:
+        key: volsync/restic
+        property: access-key
+    - secretKey: secretKey
+      remoteRef:
+        key: volsync/restic
+        property: secret-key
+---
+apiVersion: volsync.backube/v1alpha1
+kind: ReplicationSource
+metadata:
+  name: nextcloud-html
+  namespace: nextcloud
+spec:
+  sourcePVC: nextcloud-html
+  trigger:
+    schedule: "0 2 * * *"
+  restic:
+    repository: nextcloud-html-restic
+    copyMethod: Clone
+    storageClassName: fast
+    pruneIntervalDays: 7
+    retain:
+      daily: 14
+      weekly: 8
+      monthly: 6
+    moverSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 33
+      runAsGroup: 33
+      fsGroup: 33
+      seccompProfile:
+        type: RuntimeDefault

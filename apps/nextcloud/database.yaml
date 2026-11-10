@@ -1,0 +1,23 @@
+# One instance, no CNPG backup: dump.yaml + backup.yaml are the backup. The
+# app role's password is CNPG's (Secret nextcloud-db-app); Nextcloud reads it
+# from env on every request (lab.config.php), so a rebuilt cluster with a new
+# password needs no edit of config.php.
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: nextcloud-db
+  namespace: nextcloud
+spec:
+  instances: 1
+  imageName: ghcr.io/cloudnative-pg/postgresql:18.6-minimal-trixie
+  storage:
+    storageClass: fast
+    size: 5Gi
+  bootstrap:
+    initdb:
+      database: nextcloud
+      owner: nextcloud
+  resources:
+    requests:
+      cpu: 50m
+      memory: 256Mi

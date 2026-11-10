@@ -1,0 +1,23 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - namespace.yaml
+  - secret.yaml
+  - storage.yaml
+  - database.yaml
+  - server.yaml
+  - cron.yaml
+  - dump.yaml
+  - backup.yaml
+  - rules.yaml
+  - route.yaml
+configMapGenerator:
+  - name: nextcloud-config
+    namespace: nextcloud
+    files:
+      - config/lab.config.php
+      - config/lab-hook.sh
+    options:
+      # PHP and shell `$`s are not Flux variables.
+      annotations:
+        kustomize.toolkit.fluxcd.io/substitute: disabled

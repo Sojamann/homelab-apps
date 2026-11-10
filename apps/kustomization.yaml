@@ -9,6 +9,7 @@ resources:
   - kassenbuch.yaml
   - mealie.yaml
   - memos.yaml
+  - nextcloud.yaml
   - supplement-tracker.yaml
   - syncthing.yaml
   - vaultwarden.yaml

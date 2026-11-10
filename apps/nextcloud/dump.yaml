@@ -1,0 +1,59 @@
+# Nightly logical dump of the db, ahead of the VolSync run at 01:45. Written
+# aside and renamed, so the clone never catches a half-written file. CNPG's
+# own image: pg_dump matches the server's major. Restore: lab
+# docs/src/workloads/nextcloud.md.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: db-dump
+  namespace: nextcloud
+spec:
+  schedule: "15 1 * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        spec:
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 26 # postgres, in the CNPG image
+            runAsGroup: 26
+            fsGroup: 26
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: pg-dump
+              image: ghcr.io/cloudnative-pg/postgresql:18.6-minimal-trixie
+              command:
+                - sh
+                - -euc
+                - |
+                  pg_dump -Fc -f /dump/nextcloud.dump.tmp
+                  sync
+                  mv /dump/nextcloud.dump.tmp /dump/nextcloud.dump
+                  ls -l /dump/nextcloud.dump
+              env:
+                - name: PGHOST
+                  value: nextcloud-db-rw
+                - name: PGDATABASE
+                  value: nextcloud
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef: { name: nextcloud-db-app, key: username }
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef: { name: nextcloud-db-app, key: password }
+              securityContext:
+                allowPrivilegeEscalation: false
+                readOnlyRootFilesystem: true
+                capabilities:
+                  drop: [ALL]
+              volumeMounts:
+                - name: dump
+                  mountPath: /dump
+          volumes:
+            - name: dump
+              persistentVolumeClaim:
+                claimName: db-dump

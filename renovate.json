@@ -27,6 +27,17 @@
       "matchStrings": [
         "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*-\\s*[\\w-]+@(?<currentValue>[^\\s@]+)"
       ]
+    },
+    {
+      "description": "CNPG `Cluster.spec.imageName` -- not an `image:` field, so the kubernetes manager misses it",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "imageName:\\s*(?<depName>[^\\s:]+):(?<currentValue>\\S+)"
+      ],
+      "datasourceTemplate": "docker"
     }
   ],
   "customDatasources": {
@@ -37,5 +48,14 @@
         "{\"releases\": items.{\"version\": version, \"releaseTimestamp\": createdAt}}"
       ]
     }
-  }
+  },
+  "packageRules": [
+    {
+      "description": "Nextcloud cannot skip a major: one major per PR, merged in order (lab docs/src/maintenance.md)",
+      "matchPackageNames": [
+        "docker.io/library/nextcloud"
+      ],
+      "separateMultipleMajor": true
+    }
+  ]
 }
