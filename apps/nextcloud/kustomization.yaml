@@ -17,6 +17,7 @@ configMapGenerator:
     files:
       - config/lab.config.php
       - config/lab-hook.sh
+      - config/copy-config.sh
     options:
       # PHP and shell `$`s are not Flux variables.
       annotations:

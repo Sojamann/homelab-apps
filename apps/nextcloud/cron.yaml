@@ -55,9 +55,6 @@ spec:
                   mountPath: /var/www/html
                 - name: data
                   mountPath: /var/www/html/data
-                - name: config
-                  mountPath: /var/www/html/config/lab.config.php
-                  subPath: lab.config.php
           volumes:
             - name: html
               persistentVolumeClaim:
@@ -65,6 +62,3 @@ spec:
             - name: data
               persistentVolumeClaim:
                 claimName: nextcloud-data
-            - name: config
-              configMap:
-                name: nextcloud-config

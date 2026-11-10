@@ -111,8 +111,13 @@ spec:
             - name: data
               mountPath: /var/www/html/data
             - name: config
-              mountPath: /var/www/html/config/lab.config.php
-              subPath: lab.config.php
+              mountPath: /lab
+            - name: config
+              mountPath: /docker-entrypoint-hooks.d/pre-installation/05-config.sh
+              subPath: copy-config.sh
+            - name: config
+              mountPath: /docker-entrypoint-hooks.d/before-starting/05-config.sh
+              subPath: copy-config.sh
             - name: config
               mountPath: /docker-entrypoint-hooks.d/before-starting/10-lab.sh
               subPath: lab-hook.sh

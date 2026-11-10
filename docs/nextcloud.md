@@ -8,13 +8,13 @@ git-owned config file and a start hook.
 graph TD
   subgraph nc["ns: nextcloud"]
     ES["ExternalSecret nextcloud"] --> SEC[["Secret nextcloud<br/>admin pw, OIDC_CLIENT_*"]]
-    CM[["ConfigMap nextcloud-config<br/>lab.config.php, start hook"]]
+    CM[["ConfigMap nextcloud-config<br/>lab.config.php, hooks"]]
     SRV["Deployment nextcloud<br/>Recreate - uid 33"]
     CRON["CronJob nextcloud-cron<br/>cron.php, */5"]
     SVC(["Service nextcloud<br/>:80"])
     SRV --> SVC
     SEC -->|env| SRV
-    CM -->|files| SRV & CRON
+    CM -->|hooks| SRV
     HTML[/"PVC nextcloud-html<br/>RWO - fast - 5Gi"/] -->|/var/www/html| SRV & CRON
     DATA[/"PVC nextcloud-data<br/>static PV - NFS"/] -->|/var/www/html/data| SRV & CRON
     DB[("Cluster nextcloud-db<br/>CNPG, 1 instance, fast")]
@@ -41,7 +41,9 @@ Why it looks like this:
 - **Three stores.** Files on the NAS as a static `Retain` PV (like memos'
   attachments); `/var/www/html` on `fast` for code, `config.php` and apps;
   Postgres on `fast` through CNPG.
-- **`lab.config.php`** is read after `config.php` and wins. It holds the db
+- **`lab.config.php`** is read after `config.php` and wins. A hook copies it
+  into `config/` before install and on every start; a subPath mount would
+  make kubelet create `config/` as root and break the install. It holds the db
   connection from env, so a rebuilt `Cluster` with a new CNPG password needs
   no edit. The ConfigMap has Flux substitution off: `$` there is PHP and
   shell, not Flux variables.
