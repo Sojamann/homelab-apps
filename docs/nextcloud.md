@@ -9,18 +9,17 @@ graph TD
   subgraph nc["ns: nextcloud"]
     ES["ExternalSecret nextcloud"] --> SEC[["Secret nextcloud<br/>admin pw, OIDC_CLIENT_*"]]
     CM[["ConfigMap nextcloud-config<br/>lab.config.php, hooks"]]
-    SRV["Deployment nextcloud<br/>Recreate - uid 33"]
-    CRON["CronJob nextcloud-cron<br/>cron.php, */5"]
+    SRV["Deployment nextcloud<br/>Recreate - uid 33<br/>+ cron sidecar, */5"]
     SVC(["Service nextcloud<br/>:80"])
     SRV --> SVC
     SEC -->|env| SRV
     CM -->|hooks| SRV
-    HTML[/"PVC nextcloud-html<br/>RWO - fast - 5Gi"/] -->|/var/www/html| SRV & CRON
-    DATA[/"PVC nextcloud-data<br/>static PV - NFS"/] -->|/var/www/html/data| SRV & CRON
+    HTML[/"PVC nextcloud-html<br/>RWO - fast - 5Gi"/] -->|/var/www/html| SRV
+    DATA[/"PVC nextcloud-data<br/>static PV - NFS"/] -->|/var/www/html/data| SRV
     DB[("Cluster nextcloud-db<br/>CNPG, 1 instance, fast")]
     DBS[["Secret nextcloud-db-app<br/>by CNPG"]]
-    DB --> DBS -->|env| SRV & CRON & DUMP
-    SRV & CRON -->|nextcloud-db-rw:5432| DB
+    DB --> DBS -->|env| SRV & DUMP
+    SRV -->|nextcloud-db-rw:5432| DB
     DUMP["CronJob db-dump<br/>pg_dump 01:15"] --> DUMPV[/"PVC db-dump<br/>RWO - fast - 5Gi"/]
     RS["ReplicationSources<br/>db-dump, nextcloud-html"] -.->|clones| DUMPV & HTML
     HR["HTTPRoute nextcloud<br/>files.&lt;app_domain&gt;"] -->|:80| SVC
@@ -52,8 +51,10 @@ Why it looks like this:
   `user_oidc` installed and its provider written from env.
 - **Runs as uid 33** (www-data) from the start, so the entrypoint skips its
   chown; `net.ipv4.ip_unprivileged_port_start=0` lets Apache keep port 80.
-- **Background jobs** are a k8s CronJob on the same image and volumes, not a
-  sidecar. RWO is fine: one node.
+- **Background jobs** are a sidecar looping `cron.php` every 5 minutes: same
+  version and node as the server, stops with it. Not the image's `/cron.sh`
+  (busybox crond needs root), not a CronJob (would need the RWO volume's node,
+  and runs mid-install/upgrade).
 - **No Redis.** APCu (the image's default) for the local cache, the db for
   file locking -- enough for a household.
 - **Backup** is a nightly `pg_dump` with CNPG's own image (same major), then

@@ -6,7 +6,6 @@ resources:
   - storage.yaml
   - database.yaml
   - server.yaml
-  - cron.yaml
   - dump.yaml
   - backup.yaml
   - rules.yaml

@@ -15,6 +15,8 @@ spec:
     metadata:
       labels:
         app: nextcloud
+      annotations:
+        kubectl.kubernetes.io/default-container: nextcloud
     spec:
       enableServiceLinks: false
       # As www-data from the start: the entrypoint then skips its chown/su.
@@ -121,6 +123,42 @@ spec:
             - name: config
               mountPath: /docker-entrypoint-hooks.d/before-starting/10-lab.sh
               subPath: lab-hook.sh
+        # Background jobs, the `cron.php` way. A loop, not the image's
+        # /cron.sh: busybox crond needs root. Fails harmlessly until installed.
+        - name: cron
+          image: docker.io/library/nextcloud:35.0.1-apache
+          command: [sh, -c]
+          args:
+            - |
+              trap 'exit 0' TERM
+              while :; do
+                sleep 300 & wait $!
+                php -f /var/www/html/cron.php || true
+              done
+          env:
+            - name: POSTGRES_HOST
+              value: nextcloud-db-rw
+            - name: POSTGRES_DB
+              value: nextcloud
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef: { name: nextcloud-db-app, key: username }
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef: { name: nextcloud-db-app, key: password }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+          volumeMounts:
+            - name: html
+              mountPath: /var/www/html
+            - name: data
+              mountPath: /var/www/html/data
       volumes:
         - name: html
           persistentVolumeClaim:
