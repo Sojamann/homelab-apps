@@ -26,8 +26,16 @@
       ],
       "matchStrings": [
         "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*-\\s*[\\w-]+@(?<currentValue>[^\\s@]+)"
-      ],
-      "extractVersionTemplate": "^v?(?<version>.*)$"
+      ]
     }
-  ]
+  ],
+  "customDatasources": {
+    "grafana-plugins": {
+      "description": "grafana.com plugin catalog -- what Grafana installs from; GitHub releases land there days later",
+      "defaultRegistryUrlTemplate": "https://grafana.com/api/plugins/{{packageName}}/versions",
+      "transformTemplates": [
+        "{\"releases\": items.{\"version\": version, \"releaseTimestamp\": createdAt}}"
+      ]
+    }
+  }
 }
