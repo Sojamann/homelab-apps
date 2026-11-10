@@ -62,8 +62,6 @@ spec:
             # Envoy connects from the node or a pod address.
             - name: TRUSTED_PROXIES
               value: 10.244.0.0/16 10.212.4.0/24
-            - name: APACHE_DISABLE_REWRITE_IP
-              value: "1"
             - name: OIDC_DISCOVERY_URI
               value: https://login.${app_domain}/.well-known/openid-configuration
             - name: TZ
