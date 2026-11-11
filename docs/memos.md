@@ -31,7 +31,7 @@ graph TD
 
 Why it looks like this:
 
-- **Two volumes, as for syncthing.** `memos-data` (the SQLite db) is on
+- **Two volumes.** `memos-data` (the SQLite db) is on
   `fast` with a `backup.yaml` -- see [volsync](./volsync.md).
   `memos-assets` (attachments) is a static `Retain` PV on
   `/mnt/slow/k8s-csi/memos`, mounted over `assets/` of the data dir, which is

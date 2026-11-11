@@ -31,7 +31,6 @@ graph TD
   APPS -->|applies| ML["mealie<br/>./apps/mealie<br/>prune - wait"]
   APPS -->|applies| MM["memos<br/>./apps/memos<br/>prune - wait"]
   APPS -->|applies| ST["supplement-tracker<br/>./apps/supplement-tracker<br/>prune - wait"]
-  APPS -->|applies| SY["syncthing<br/>./apps/syncthing<br/>prune - wait"]
   APPS -->|applies| VW["vaultwarden<br/>./apps/vaultwarden<br/>prune - wait"]
 ```
 > every Kustomization substitutes from the `cluster-vars` Secret (domains, tailnet suffix, Telegram chat id), written by the platform layer
@@ -81,7 +80,6 @@ lives in its own namespace together with its secrets and storage.
 | mealie             | Recipes, meal plan, shopping list | `recipes.<app_domain>` | [link](./docs/mealie.md)             |
 | memos              | Notes, on trial                | `notes.<app_domain>`        | [link](./docs/memos.md)              |
 | supplement-tracker | Household supplement tracker   | `supplements.<app_domain>`  | [link](./docs/supplement-tracker.md) |
-| syncthing          | File sync hub, self-hosted cloud | `sync.<app_domain>`       | [link](./docs/syncthing.md)          |
 | vaultwarden        | Household password manager     | `passwords.<app_domain>`    | [link](./docs/vaultwarden.md)        |
 
 App pages: [Workloads](../docs/src/workloads/index.md).

@@ -11,5 +11,4 @@ resources:
   - memos.yaml
   - nextcloud.yaml
   - supplement-tracker.yaml
-  - syncthing.yaml
   - vaultwarden.yaml

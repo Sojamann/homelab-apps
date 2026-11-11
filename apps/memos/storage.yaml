@@ -1,5 +1,5 @@
-# Attachments: a static PV on a fixed directory of the `k8s-csi` export, as
-# for syncthing's files -- `Retain`, so deleting the PVC, the namespace or this
+# Attachments: a static PV on a fixed directory of the `k8s-csi` export --
+# `Retain`, so deleting the PVC, the namespace or this
 # file leaves them; a rebuild re-binds by name. Created by hand on the NAS
 # (owned by uid 1000). NAS snapshots on `slow/k8s-csi` are its backup.
 apiVersion: v1
