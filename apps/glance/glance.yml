@@ -29,6 +29,10 @@ pages:
                     description: Household notes
                     icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/memos.svg
                     url: https://notes.${app_domain}
+                  - title: Nextcloud
+                    description: Household files
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/nextcloud.svg
+                    url: https://files.${app_domain}
                   - title: Supplement Tracker
                     description: Household supplements
                     icon: mdi:pill
