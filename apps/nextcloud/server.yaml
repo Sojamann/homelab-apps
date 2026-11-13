@@ -34,7 +34,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: nextcloud
-          image: docker.io/library/nextcloud:35.0.1-apache
+          image: docker.io/library/nextcloud:35.0.2-apache
           ports:
             - name: http
               containerPort: 80
@@ -126,7 +126,7 @@ spec:
         # Background jobs, the `cron.php` way. A loop, not the image's
         # /cron.sh: busybox crond needs root. Fails harmlessly until installed.
         - name: cron
-          image: docker.io/library/nextcloud:35.0.1-apache
+          image: docker.io/library/nextcloud:35.0.2-apache
           command: [sh, -c]
           args:
             - |
