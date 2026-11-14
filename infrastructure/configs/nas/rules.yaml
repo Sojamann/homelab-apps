@@ -35,3 +35,33 @@ spec:
             origin: lab
           annotations:
             summary: "Pool {{ $labels.pool }} is {{ $value | humanizePercentage }} full"
+        # Fed by the snapshot textfile cron. Hourly snapshots and replication:
+        # 2h means one run was missed. A dead cron ages out the same way.
+        - alert: NasSnapshotStale
+          expr: time() - nas_snapshot_newest_timestamp_seconds{job="nas"} > 7200
+          for: 15m
+          labels:
+            severity: warning
+            origin: lab
+          annotations:
+            summary: "No snapshot of {{ $labels.dataset }} for {{ $value | humanizeDuration }}"
+        - alert: NasSnapshotMetricsAbsent
+          expr: absent(nas_snapshot_newest_timestamp_seconds{job="nas"})
+          for: 1h
+          labels:
+            severity: warning
+            origin: lab
+          annotations:
+            summary: NAS snapshot metrics missing (textfile cron not writing)
+        # The driver refuses to delete a zvol whose snapshots still inherit
+        # democratic-csi:managed_resource=true; the NAS cron flips it hourly.
+        - alert: PersistentVolumeStuckReleased
+          expr: |
+            kube_persistentvolume_status_phase{phase="Released"} == 1
+              and on (persistentvolume) kube_persistentvolume_info{storageclass="fast"}
+          for: 1h
+          labels:
+            severity: warning
+            origin: lab
+          annotations:
+            summary: "PV {{ $labels.persistentvolume }} stuck Released (NAS snapshot fixup?)"
