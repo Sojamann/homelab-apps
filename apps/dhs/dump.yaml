@@ -1,5 +1,5 @@
-# Nightly logical dump of DHS's postgres, ahead of the VolSync run at 01:00.
-# Written aside and renamed, so the clone never catches a half-written file.
+# Nightly logical dump of DHS's postgres. Written aside and renamed, so a
+# snapshot never catches a half-written file.
 # Same major as the server (17): pg_dump may be newer, but a newer dump does
 # not restore with the server's own pg_restore.
 apiVersion: batch/v1

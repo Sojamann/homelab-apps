@@ -18,21 +18,19 @@ graph TD
     DATA[/"PVC nextcloud-data<br/>static PV - NFS"/] -->|/var/www/html/data| SRV
     DB[("Cluster nextcloud-db<br/>CNPG, 1 instance, fast")]
     DBS[["Secret nextcloud-db-app<br/>by CNPG"]]
-    DB --> DBS -->|env| SRV & DUMP
+    DB --> DBS -->|env| SRV
     SRV -->|nextcloud-db-rw:5432| DB
-    DUMP["CronJob db-dump<br/>pg_dump 01:15"] --> DUMPV[/"PVC db-dump<br/>RWO - fast - 5Gi"/]
-    RS["ReplicationSources<br/>db-dump, nextcloud-html"] -.->|clones| DUMPV & HTML
     HR["HTTPRoute nextcloud<br/>files.&lt;app_domain&gt;"] -->|:80| SVC
   end
 
   HR -.->|parentRef| GW["Gateway lab<br/>platform layer"]
   BAO["OpenBao<br/>kv/nextcloud/app"] -.->|ClusterSecretStore openbao| ES
   SRV -.->|OIDC| PID["Pocket ID<br/>login.&lt;app_domain&gt;"]
-  RS -->|see volsync.md| GA["Garage on the NAS<br/>k8s-backups"]
+  HTML & DB -.-> SNAP["NAS<br/>fast/k8s-csi/vols<br/>hourly + daily snapshots"]
   DATA -.-> NAS["NAS slow/k8s-csi/nextcloud<br/>ZFS snapshots"]
 
   classDef ext fill:#eee,stroke:#999,stroke-dasharray:3 3;
-  class GW,BAO,PID,GA,NAS ext;
+  class GW,BAO,PID,SNAP,NAS ext;
 ```
 
 Why it looks like this:
@@ -57,7 +55,8 @@ Why it looks like this:
   and runs mid-install/upgrade).
 - **No Redis.** APCu (the image's default) for the local cache, the db for
   file locking -- enough for a household.
-- **Backup** is a nightly `pg_dump` with CNPG's own image (same major), then
-  VolSync, as for DHS. CNPG's backup feature is not used.
+- **Backup** is the NAS's snapshots of every volume: the db's zvol is
+  crash-consistent, postgres replays its WAL on start. No dump, and CNPG's
+  backup feature is not used.
 
 Users, break-glass, restore: [Nextcloud](../../docs/src/workloads/nextcloud.md).

@@ -40,7 +40,6 @@ graph TD
   NAS["infrastructure/configs/nas<br/>ScrapeConfig - PrometheusRule"] --> MON
   PVE["infrastructure/configs/proxmox<br/>ScrapeConfig - PrometheusRule"] --> MON
   GA["infrastructure/configs/garage<br/>ScrapeConfig - PrometheusRule"] --> MON
-  VS["infrastructure/configs/volsync<br/>PrometheusRule - see volsync.md"] --> MON
   VLR["infrastructure/configs/victoria-logs<br/>PrometheusRule"] --> MON
   PROM -->|scrapes :9100| TN["TrueNAS node-exporter<br/>10.212.4.150 - see machines/truenas.md"]
   PROM -->|"scrapes :3903/metrics, bearer"| GS["Garage on the NAS<br/>s3-k8s - see machines/truenas.md"]

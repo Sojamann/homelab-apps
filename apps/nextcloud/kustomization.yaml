@@ -6,9 +6,6 @@ resources:
   - storage.yaml
   - database.yaml
   - server.yaml
-  - dump.yaml
-  - backup.yaml
-  - rules.yaml
   - route.yaml
 configMapGenerator:
   - name: nextcloud-config

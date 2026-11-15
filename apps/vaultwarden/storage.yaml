@@ -1,5 +1,4 @@
-# On `fast`: a block device, so SQLite runs in its default WAL mode. Backed up
-# by backup.yaml -- see docs/volsync.md.
+# On `fast`: a block device, so SQLite runs in its default WAL mode.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

@@ -36,7 +36,7 @@ spec:
       storage: 5Gi
 ---
 # The SQLite db: memos, users, settings, and each attachment's path. On
-# `fast`, as SQLite wants a block device; backed up by backup.yaml.
+# `fast`, as SQLite wants a block device.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:

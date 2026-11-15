@@ -14,5 +14,4 @@ resources:
   - pocket-id
   - tailscale
   - victoria-logs
-  - volsync
   - zot

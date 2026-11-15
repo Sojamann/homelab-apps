@@ -1,12 +1,10 @@
 # CRs naming kinds `../controllers` installs -- scrape targets outside the
-# cluster, alert rules, dashboards, and the backups of apps that live there.
+# cluster, alert rules, dashboards.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:
   - dashboards
   - garage
   - nas
-  - pocket-id
   - proxmox
   - victoria-logs
-  - volsync

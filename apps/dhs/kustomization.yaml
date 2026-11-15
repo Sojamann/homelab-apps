@@ -6,6 +6,5 @@ resources:
   - secret.yaml
   - storage.yaml
   - dump.yaml
-  - backup.yaml
   - scrape.yaml
   - rules.yaml

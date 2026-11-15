@@ -17,7 +17,7 @@ spec:
           annotations:
             summary: DHS box unreachable over the tailnet
         # A dump older than a day and a bit means the nightly run is failing,
-        # and VolSync keeps backing up a stale file without complaint.
+        # and the snapshots keep a stale file without complaint.
         - alert: DhsDumpStale
           expr: >-
             time() - kube_cronjob_status_last_successful_time{namespace="dhs", cronjob="postgres-dump"} > 26 * 3600

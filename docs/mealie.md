@@ -12,25 +12,24 @@ graph TD
     SRV --> SVC
     SEC -->|env| SRV
     DATA[/"PVC mealie-data<br/>RWO - fast - 5Gi"/] -->|/app/data| SRV
-    RS["ReplicationSource mealie-data<br/>restic - daily"] -.->|clones| DATA
     HR["HTTPRoute mealie<br/>recipes.&lt;app_domain&gt;"] -->|:9000| SVC
   end
 
   HR -.->|parentRef| GW["Gateway lab<br/>platform layer"]
   BAO["OpenBao<br/>kv/mealie/app"] -.->|ClusterSecretStore openbao| ES
   SRV -.->|OIDC| PID["Pocket ID<br/>login.&lt;app_domain&gt;"]
-  RS -->|see volsync.md| GA["Garage on the NAS<br/>k8s-backups"]
+  DATA -.-> SNAP["NAS<br/>fast/k8s-csi/vols<br/>hourly + daily snapshots"]
 
   classDef ext fill:#eee,stroke:#999,stroke-dasharray:3 3;
-  class GW,BAO,PID,GA ext;
+  class GW,BAO,PID,SNAP ext;
 ```
 
 Why it looks like this:
 
 - **One volume.** `mealie-data` holds the SQLite db, recipe images and the
-  signing secrets Mealie generates on first start -- on `fast`, with a
-  `backup.yaml` (see [volsync](./volsync.md)). Images are few and small; a
-  split onto the NAS would buy two restores that must line up.
+  signing secrets Mealie generates on first start -- on `fast`. Images are
+  few and small; a split onto the NAS would buy two restores that must line
+  up.
 - **Config is env** in `server.yaml`; Mealie has no config file. Only the
   Pocket ID client is a secret.
 - **Runs as uid 1000.** The entrypoint only `chown`s + `gosu`s when started as

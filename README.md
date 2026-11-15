@@ -9,7 +9,7 @@ then stops.
 ```
 clusters/lab/              the entrypoint -- FluxInstance.spec.sync.path points here
 infrastructure/controllers shared services -- operators and charts the apps depend on
-infrastructure/configs     CRs naming kinds the controllers install -- rules, scrapes, backups of controllers
+infrastructure/configs     CRs naming kinds the controllers install -- rules, scrapes, dashboards
 apps/                      a Flux Kustomization per app, plus its directory
 ```
 
@@ -45,8 +45,7 @@ chart that defines its kind:
   not change -- renaming prunes the CNPG release, its CRDs, and every database.
 - `infrastructure-configs` -> `configs/`: CRs no app owns (scrape targets
   outside the cluster, rules, dashboards). A CR an app owns belongs beside that
-  app instead -- unless the app is itself in `controllers/`, like Pocket ID's
-  backup in `configs/pocket-id/`.
+  app instead -- unless the app is itself in `controllers/`.
 
 | Name                  | Description       | Namespace        | Docs                         |
 |-----------------------|-------------------|------------------|------------------------------|
@@ -54,7 +53,6 @@ chart that defines its kind:
 | kube-prometheus-stack | metrics + grafana | `monitoring`     | [link](./docs/monitoring.md) |
 | pocket-id             | OIDC provider     | `pocket-id`      | [link](./docs/pocket-id.md)  |
 | tailscale             | tailnet egress    | `tailscale`      | [link](./docs/tailscale.md)  |
-| volsync               | PVC backups       | `volsync-system` | [link](./docs/volsync.md)    |
 | zot                   | OCI registry      | `zot`            | [link](./docs/zot.md)        |
 
 Versions live in the manifests only (`repository.yaml` / `release.yaml` /
@@ -74,7 +72,7 @@ lives in its own namespace together with its secrets and storage.
 
 | Name               | Description                    | Domain                      | Docs                                 |
 |--------------------|--------------------------------|-----------------------------|--------------------------------------|
-| dhs                | Backups + scrape of the DHS box, over the tailnet | --                 | [link](./docs/dhs.md)                |
+| dhs                | Db dump + scrape of the DHS box, over the tailnet | --                 | [link](./docs/dhs.md)                |
 | glance             | Lab start page, release feed   | `dash.<app_domain>`         | [link](./docs/glance.md)             |
 | kassenbuch         | Kassenbuch of the Verein       | `kassenbuch.<app_domain>`   | [link](./docs/kassenbuch.md)         |
 | mealie             | Recipes, meal plan, shopping list | `recipes.<app_domain>` | [link](./docs/mealie.md)             |

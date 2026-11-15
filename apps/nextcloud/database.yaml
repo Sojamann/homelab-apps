@@ -1,7 +1,8 @@
-# One instance, no CNPG backup: dump.yaml + backup.yaml are the backup. The
-# app role's password is CNPG's (Secret nextcloud-db-app); Nextcloud reads it
-# from env on every request (lab.config.php), so a rebuilt cluster with a new
-# password needs no edit of config.php.
+# One instance, no CNPG backup: the NAS's zvol snapshots are (crash-consistent,
+# postgres replays its WAL). The app role's password is CNPG's (Secret
+# nextcloud-db-app); Nextcloud reads it from env on every request
+# (lab.config.php), so a rebuilt cluster with a new password needs no edit of
+# config.php.
 apiVersion: postgresql.cnpg.io/v1
 kind: Cluster
 metadata:

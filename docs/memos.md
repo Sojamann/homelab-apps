@@ -15,7 +15,6 @@ graph TD
     CM -->|/etc/memos/config| SRV
     DATA[/"PVC memos-data<br/>RWO - fast - 1Gi"/] -->|/var/opt/memos| SRV
     ASSETS[/"PVC memos-assets<br/>static PV - Retain"/] -->|/var/opt/memos/assets| SRV
-    RS["ReplicationSource memos-data<br/>restic - daily"] -.->|clones| DATA
     HR["HTTPRoute memos<br/>notes.&lt;app_domain&gt;"] -->|:5230| SVC
   end
 
@@ -23,16 +22,15 @@ graph TD
   BAO["OpenBao<br/>kv/memos/app"] -.->|ClusterSecretStore openbao| ES
   SRV -.->|OIDC| PID["Pocket ID<br/>login.&lt;app_domain&gt;"]
   ASSETS -.-> NAS["NAS<br/>slow/k8s-csi/memos<br/>hourly + daily snapshots"]
-  RS -->|see volsync.md| GA["Garage on the NAS<br/>k8s-backups"]
+  DATA -.-> SNAP["NAS<br/>fast/k8s-csi/vols<br/>hourly + daily snapshots"]
 
   classDef ext fill:#eee,stroke:#999,stroke-dasharray:3 3;
-  class GW,BAO,PID,NAS,GA ext;
+  class GW,BAO,PID,NAS,SNAP ext;
 ```
 
 Why it looks like this:
 
-- **Two volumes.** `memos-data` (the SQLite db) is on
-  `fast` with a `backup.yaml` -- see [volsync](./volsync.md).
+- **Two volumes.** `memos-data` (the SQLite db) is on `fast`.
   `memos-assets` (attachments) is a static `Retain` PV on
   `/mnt/slow/k8s-csi/memos`, mounted over `assets/` of the data dir, which is
   memos' default attachment path. The directory is made by hand -- see
