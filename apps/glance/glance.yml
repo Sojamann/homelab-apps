@@ -44,6 +44,10 @@ pages:
 
               - title: Lab
                 links:
+                  - title: Docs
+                    description: Lab documentation
+                    icon: si:github
+                    url: https://sojamann.github.io/homelab/
                   - title: Grafana
                     description: Metrics and dashboards
                     icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/grafana.svg
