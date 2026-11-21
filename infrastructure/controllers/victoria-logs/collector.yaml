@@ -8,9 +8,9 @@ metadata:
   namespace: monitoring
 spec:
   interval: 1h
-  # Its ServiceMonitor/PodMonitor CRDs come with that chart.
+  # Its VMPodScrape CRD comes with that chart.
   dependsOn:
-    - name: kube-prometheus-stack
+    - name: victoria-metrics
   chartRef:
     kind: OCIRepository
     name: victoria-logs-collector
@@ -24,6 +24,8 @@ spec:
         maxDiskUsagePerURL: 1GiB
     podMonitor:
       enabled: true
+      # A VMPodScrape, not a PodMonitor.
+      vm: true
     resources:
       requests: { cpu: 20m, memory: 64Mi }
       limits: { memory: 512Mi }

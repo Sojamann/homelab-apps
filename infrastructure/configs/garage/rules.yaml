@@ -1,6 +1,6 @@
 # `origin: lab` -- see nas/rules.yaml.
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
 metadata:
   name: garage
   namespace: monitoring

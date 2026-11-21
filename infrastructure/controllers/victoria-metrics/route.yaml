@@ -1,0 +1,66 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: grafana
+  namespace: monitoring
+spec:
+  parentRefs:
+    - name: lab
+      namespace: gateway
+  hostnames:
+    - grafana.${app_domain}
+  rules:
+    - backendRefs:
+        - name: victoria-metrics-grafana
+          port: 80
+---
+# The three below have no login of their own; each goes through oauth2-proxy.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: metrics
+  namespace: monitoring
+spec:
+  parentRefs:
+    - name: lab
+      namespace: gateway
+  hostnames:
+    - metrics.${app_domain}
+  rules:
+    - backendRefs:
+        - name: oauth2-proxy
+          port: 4180
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: logs
+  namespace: monitoring
+spec:
+  parentRefs:
+    - name: lab
+      namespace: gateway
+  hostnames:
+    - logs.${app_domain}
+  rules:
+    - backendRefs:
+        - name: oauth2-proxy
+          port: 4181
+---
+# Silencing from a phone at 3am is the operation this route is for: the
+# Telegram message's *silence* link, then a passkey.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: alertmanager
+  namespace: monitoring
+spec:
+  parentRefs:
+    - name: lab
+      namespace: gateway
+  hostnames:
+    - alertmanager.${app_domain}
+  rules:
+    - backendRefs:
+        - name: oauth2-proxy
+          port: 4182

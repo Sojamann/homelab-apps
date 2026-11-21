@@ -1,13 +1,16 @@
 # Garage on the NAS -- see machines/truenas.md. Caddy exposes only `/metrics`
 # of the admin API on the k8s address.
-apiVersion: monitoring.coreos.com/v1alpha1
-kind: ScrapeConfig
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMScrapeConfig
 metadata:
   name: garage
   namespace: monitoring
 spec:
-  jobName: garage
-  scheme: HTTPS
+  scheme: https
+  # No jobName on a VMScrapeConfig, see ../nas/scrape.yaml.
+  relabelConfigs:
+    - targetLabel: job
+      replacement: garage
   authorization:
     type: Bearer
     credentials:

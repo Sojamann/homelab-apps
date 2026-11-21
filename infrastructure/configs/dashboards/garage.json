@@ -4,8 +4,8 @@
       {
         "builtIn": 1,
         "datasource": {
-          "type": "prometheus",
-          "uid": "prometheus"
+          "type": "victoriametrics-metrics-datasource",
+          "uid": "victoriametrics"
         },
         "enable": true,
         "hide": true,
@@ -30,8 +30,8 @@
   "panels": [
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -108,8 +108,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
           },
           "exemplar": true,
           "expr": "sum(rate(block_bytes_read{job=\"garage\"}[$__rate_interval])    )",
@@ -120,8 +120,8 @@
         },
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
           },
           "exemplar": true,
           "expr": "-sum(rate(block_bytes_written{job=\"garage\"}[$__rate_interval])    )",
@@ -136,8 +136,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -214,8 +214,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "exemplar": true,
@@ -232,8 +232,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -310,8 +310,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
           },
           "exemplar": true,
           "expr": "sum(rate(web_request_counter {job=\"garage\"}[$__rate_interval]))",
@@ -326,8 +326,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -404,8 +404,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
           },
           "exemplar": true,
           "expr": "sum by (rpc_endpoint) (rate(rpc_request_counter {job=\"garage\"}[$__rate_interval]))",
@@ -420,8 +420,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -498,8 +498,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
           },
           "editorMode": "code",
           "exemplar": true,
@@ -516,8 +516,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -594,8 +594,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
           },
           "exemplar": true,
           "expr": "sum by(status_code) (rate(web_error_counter {job=\"garage\"}[$__rate_interval]))",
@@ -610,8 +610,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -687,8 +687,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
           },
           "exemplar": true,
           "expr": "block_resync_queue_length{job=\"garage\"}",
@@ -702,8 +702,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -779,8 +779,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
           },
           "exemplar": true,
           "expr": "sum by(table_name) (table_gc_todo_queue_length{job=\"garage\"})",
@@ -794,8 +794,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -871,8 +871,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
           },
           "exemplar": true,
           "expr": "sum by(table_name) (table_merkle_updater_todo_queue_length{job=\"garage\"})",
@@ -886,8 +886,8 @@
     },
     {
       "datasource": {
-        "type": "prometheus",
-        "uid": "prometheus"
+        "type": "victoriametrics-metrics-datasource",
+        "uid": "victoriametrics"
       },
       "fieldConfig": {
         "defaults": {
@@ -963,8 +963,8 @@
       "targets": [
         {
           "datasource": {
-            "type": "prometheus",
-            "uid": "prometheus"
+            "type": "victoriametrics-metrics-datasource",
+            "uid": "victoriametrics"
           },
           "exemplar": true,
           "expr": "block_resync_errored_blocks{job=\"garage\"}",

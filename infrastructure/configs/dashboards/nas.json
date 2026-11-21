@@ -17,7 +17,7 @@
       "title": "Pool fill",
       "description": "allocated / size from `zpool list`, via the TrueNAS cron job. For `fast` that includes every zvol behind a PVC. Stay under 80%.",
       "gridPos": { "x": 0, "y": 0, "w": 16, "h": 6 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
@@ -37,7 +37,7 @@
       "type": "stat",
       "title": "Pool state",
       "gridPos": { "x": 16, "y": 0, "w": 8, "h": 6 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {
           "mappings": [ { "type": "value", "options": { "0": { "text": "NOT ONLINE", "color": "red" }, "1": { "text": "ONLINE", "color": "green" } } } ],
@@ -55,7 +55,7 @@
       "type": "timeseries",
       "title": "CPU",
       "gridPos": { "x": 0, "y": 6, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
@@ -78,7 +78,7 @@
       "title": "Memory",
       "description": "Stacked to MemTotal. ARC is ZFS's cache and is not in MemAvailable, so a plain 1 - MemAvailable/MemTotal reads high on a healthy box. Used growing into ARC is the signal, not ARC itself.",
       "gridPos": { "x": 12, "y": 6, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {
           "unit": "bytes",
@@ -104,7 +104,7 @@
       "title": "ARC hit ratio",
       "description": "Share of reads served from RAM. Persistently low means the ARC is too small for the workload.",
       "gridPos": { "x": 0, "y": 14, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
@@ -125,7 +125,7 @@
       "title": "Network",
       "description": "Physical interfaces only, one per VLAN. Receive up, transmit down.",
       "gridPos": { "x": 12, "y": 14, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": { "unit": "Bps", "custom": { "fillOpacity": 10, "showPoints": "never" } },
         "overrides": [

@@ -18,7 +18,7 @@
       "title": "Cluster",
       "description": "Quorum. A cluster that loses it stops allowing changes to guests.",
       "gridPos": { "x": 0, "y": 0, "w": 6, "h": 6 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {
           "mappings": [ { "type": "value", "options": { "0": { "text": "NO QUORUM", "color": "red" }, "1": { "text": "QUORATE", "color": "green" } } } ],
@@ -37,7 +37,7 @@
       "title": "Storage fill",
       "description": "Each PVE storage -- guest disks, ISOs, backups and snippets all share `local`.",
       "gridPos": { "x": 6, "y": 0, "w": 18, "h": 6 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
@@ -62,7 +62,7 @@
       "type": "timeseries",
       "title": "CPU per host",
       "gridPos": { "x": 0, "y": 6, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
@@ -85,7 +85,7 @@
       "title": "Memory per host",
       "description": "Solid: 1 - MemAvailable/MemTotal. Dashed: what the guests are assigned -- the host cannot start more than it has, whatever the usage says.",
       "gridPos": { "x": 12, "y": 6, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
@@ -113,7 +113,7 @@
       "title": "Root filesystem",
       "description": "The host's own `/`. Guest disks live on a PVE storage -- see the bars above.",
       "gridPos": { "x": 0, "y": 14, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
@@ -135,7 +135,7 @@
       "title": "Network per host",
       "description": "Physical interfaces and the bridge. Receive up, transmit down.",
       "gridPos": { "x": 12, "y": 14, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": { "unit": "Bps", "custom": { "fillOpacity": 10, "showPoints": "never" } },
         "overrides": [
@@ -154,7 +154,7 @@
       "title": "Guests",
       "description": "Every VM and container the cluster knows. Memory is what the guest agent reports, so a guest without one reads high.",
       "gridPos": { "x": 0, "y": 22, "w": 24, "h": 10 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {},
         "overrides": [

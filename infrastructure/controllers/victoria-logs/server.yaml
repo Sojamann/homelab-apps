@@ -1,7 +1,6 @@
 # VictoriaLogs, single binary: stores every container log in the cluster.
-# Queried from Grafana only -- no route; its own UI is a port-forward away.
-# The query API has no auth of its own, so a route would hand every log to
-# every LAN and tailnet device.
+# Queried from Grafana, and from its own UI at `logs.<app_domain>` through
+# oauth2-proxy (in ../victoria-metrics): the query API has no auth of its own.
 apiVersion: helm.toolkit.fluxcd.io/v2
 kind: HelmRelease
 metadata:
@@ -9,9 +8,9 @@ metadata:
   namespace: monitoring
 spec:
   interval: 1h
-  # Its ServiceMonitor/PodMonitor CRDs come with that chart.
+  # Its VMServiceScrape CRD comes with that chart.
   dependsOn:
-    - name: kube-prometheus-stack
+    - name: victoria-metrics
   chartRef:
     kind: OCIRepository
     name: victoria-logs-single
@@ -31,5 +30,5 @@ spec:
       resources:
         requests: { cpu: 50m, memory: 128Mi }
         limits: { memory: 1Gi }
-      serviceMonitor:
+      vmServiceScrape:
         enabled: true

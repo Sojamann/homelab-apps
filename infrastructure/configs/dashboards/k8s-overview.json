@@ -17,7 +17,7 @@
       "title": "CPU per node",
       "description": "Solid: actual usage. Dashed: sum of pod CPU requests against allocatable -- when that nears 100% new pods stay Pending, whatever the usage.",
       "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
@@ -42,7 +42,7 @@
       "title": "Memory per node",
       "description": "Solid: 1 - MemAvailable/MemTotal. Dashed: sum of pod memory requests against allocatable.",
       "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
@@ -67,7 +67,7 @@
       "title": "Network per node",
       "description": "Physical interfaces only. Receive up, transmit down.",
       "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": { "unit": "Bps", "custom": { "fillOpacity": 10, "showPoints": "never" } },
         "overrides": [
@@ -86,7 +86,7 @@
       "title": "Node disk",
       "description": "The node's /var -- Talos EPHEMERAL: images, logs, emptyDirs.",
       "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {
           "unit": "percentunit",
@@ -108,7 +108,7 @@
       "title": "Volumes",
       "description": "What each PVC holds. Fill % only for `fast`: a zvol at 100% is a write error. A `bulk` PVC is a directory on the NAS pool, whose fill is the NAS's to report.",
       "gridPos": { "x": 0, "y": 16, "w": 24, "h": 10 },
-      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "datasource": { "type": "victoriametrics-metrics-datasource", "uid": "victoriametrics" },
       "fieldConfig": {
         "defaults": {},
         "overrides": [

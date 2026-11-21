@@ -1,6 +1,6 @@
 # `origin: lab` -- see infrastructure/configs/proxmox/rules.yaml.
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
 metadata:
   name: dhs
   namespace: monitoring

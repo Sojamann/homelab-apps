@@ -5,4 +5,5 @@ resources:
   - repository.yaml
   - secret.yaml
   - release.yaml
+  - oauth2-proxy.yaml
   - route.yaml

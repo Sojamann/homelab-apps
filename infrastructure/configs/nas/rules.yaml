@@ -1,8 +1,8 @@
-# `origin: lab` on every rule here: it is what separates these from the ~134 the
-# chart ships. Grafana filters on `label:origin=lab`, Alertmanager matches on it,
+# `origin: lab` on every rule here: it is what separates these from the ones
+# the chart ships. Grafana filters on `label:origin=lab`, Alertmanager matches on it,
 # and it is a matcher away from routing this lab's own alerts differently.
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
 metadata:
   name: nas
   namespace: monitoring

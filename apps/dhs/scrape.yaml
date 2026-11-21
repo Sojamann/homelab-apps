@@ -1,13 +1,16 @@
 # node_exporter on the box, behind `tailscale serve` -- through egress.yaml.
-apiVersion: monitoring.coreos.com/v1alpha1
-kind: ScrapeConfig
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMScrapeConfig
 metadata:
   name: dhs
   namespace: monitoring
 spec:
-  jobName: dhs
-  # Not the proxy Service's name, which is all the target address says.
-  relabelings:
+  # No jobName on a VMScrapeConfig, see infrastructure/configs/nas/scrape.yaml.
+  # `instance`: not the proxy Service's name, which is all the target address
+  # says.
+  relabelConfigs:
+    - targetLabel: job
+      replacement: dhs
     - targetLabel: instance
       replacement: dhs
   staticConfigs:

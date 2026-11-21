@@ -1,7 +1,7 @@
 # `origin: lab` -- see nas/rules.yaml. All warnings: missing logs are not an
 # outage.
-apiVersion: monitoring.coreos.com/v1
-kind: PrometheusRule
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
 metadata:
   name: victoria-logs
   namespace: monitoring

@@ -50,16 +50,16 @@ chart that defines its kind:
 | Name                  | Description       | Namespace        | Docs                         |
 |-----------------------|-------------------|------------------|------------------------------|
 | cloudnative-pg        | postgres operator | `cnpg-system`    | [topic](../docs/src/platform/cloudnative-pg.md) |
-| kube-prometheus-stack | metrics + grafana | `monitoring`     | [link](./docs/monitoring.md) |
 | pocket-id             | OIDC provider     | `pocket-id`      | [link](./docs/pocket-id.md)  |
 | tailscale             | tailnet egress    | `tailscale`      | [link](./docs/tailscale.md)  |
+| victoria-metrics      | metrics + grafana | `monitoring`     | [link](./docs/monitoring.md) |
 | zot                   | OCI registry      | `zot`            | [link](./docs/zot.md)        |
 
 Versions live in the manifests only (`repository.yaml` / `release.yaml` /
 `server.yaml` per directory), so a Renovate bump cannot leave a stale copy.
 
-Grafana is served at `grafana.<app_domain>`, Alertmanager at
-`alertmanager.<app_domain>`, the registry at `registry.<app_domain>`, Pocket
+Grafana is served at `grafana.<app_domain>`; VMUI, VictoriaLogs and
+Alertmanager at `metrics.`, `logs.` and `alertmanager.<app_domain>`, the registry at `registry.<app_domain>`, Pocket
 ID at `login.<app_domain>`.
 
 ## Updates

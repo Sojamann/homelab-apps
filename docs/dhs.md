@@ -16,7 +16,7 @@ graph TD
   end
 
   CJ -->|5432| SVC
-  PROM["Prometheus<br/>ScrapeConfig dhs"] -->|9100| SVC
+  PROM["VMAgent<br/>VMScrapeConfig dhs"] -->|9100| SVC
   SVC --> PX["tailscale proxy<br/>tag:k8s"]
   PX -->|WireGuard| BOX["dhs.&lt;tailnet&gt;<br/>tag:public, tag:dhs"]
   PVC -.-> SNAP["NAS<br/>fast/k8s-csi/vols<br/>hourly + daily snapshots"]
@@ -38,7 +38,8 @@ Why it looks like this:
 - **`egress.yaml` names both ports**, but the proxy forwards every port; the
   tailnet policy is what limits `tag:k8s` to 5432 and 9100.
 - **`scrape.yaml` relabels `instance` to `dhs`** -- the target address is only
-  the proxy Service's name. It sits in `monitoring`, beside Prometheus, and
+  the proxy Service's name -- and `job` to `dhs`, which a `VMScrapeConfig`
+  has no field for. It sits in `monitoring`, beside VMAgent, and
   `rules.yaml` carries `DhsDown` / `DhsDumpStale`.
 
 The box's setup, the backup role, alerts and the restore:

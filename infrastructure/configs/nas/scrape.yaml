@@ -1,11 +1,15 @@
 # node-exporter as a TrueNAS custom app -- see machines/truenas.md.
-apiVersion: monitoring.coreos.com/v1alpha1
-kind: ScrapeConfig
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMScrapeConfig
 metadata:
   name: nas
   namespace: monitoring
 spec:
-  jobName: nas
+  # VMScrapeConfig has no jobName; the operator's would be
+  # `scrapeConfig/monitoring/<name>`, and rules and dashboards match on this.
+  relabelConfigs:
+    - targetLabel: job
+      replacement: nas
   staticConfigs:
     - targets:
         - nas-k8s.${lab_domain}:9100

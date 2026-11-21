@@ -1,4 +1,4 @@
-# Namespace `monitoring` is kube-prometheus-stack's; it is already
+# Namespace `monitoring` is victoria-metrics'; it is already
 # `privileged`, which the collector's hostPath mounts need.
 apiVersion: source.toolkit.fluxcd.io/v1
 kind: OCIRepository

@@ -29,6 +29,16 @@
       ]
     },
     {
+      "description": "GitHub raw URLs pinned to a tag, `url: https://raw.githubusercontent.com/<owner>/<repo>/<tag>/...`, annotated with a `# renovate:` comment on the line above",
+      "customType": "regex",
+      "managerFilePatterns": [
+        "/\\.ya?ml$/"
+      ],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*url:\\s*https://raw\\.githubusercontent\\.com/[^/]+/[^/]+/(?<currentValue>[^/\\s]+)/"
+      ]
+    },
+    {
       "description": "CNPG `Cluster.spec.imageName` -- not an `image:` field, so the kubernetes manager misses it",
       "customType": "regex",
       "managerFilePatterns": [
