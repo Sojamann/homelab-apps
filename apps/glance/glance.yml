@@ -52,6 +52,14 @@ pages:
                     description: Metrics and dashboards
                     icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/grafana.svg
                     url: https://grafana.${app_domain}
+                  - title: VictoriaMetrics
+                    description: Ad-hoc metrics queries (VMUI)
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/victoriametrics.svg
+                    url: https://metrics.${app_domain}/vmui/
+                  - title: VictoriaLogs
+                    description: Container logs
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/victorialogs.svg
+                    url: https://logs.${app_domain}/select/vmui/
                   - title: Alertmanager
                     description: Alerts and silences
                     icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/alertmanager.svg
