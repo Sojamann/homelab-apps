@@ -39,6 +39,23 @@ spec:
     kubeProxy:
       enabled: false
 
+    # The apiserver's histograms were ~70% of all series. Only two feed a
+    # chart rule (latency SLOs, client cert expiry); every other bucket goes.
+    # The endpoint is the chart's, repeated: a list in values replaces it.
+    kubeApiServer:
+      vmScrape:
+        spec:
+          endpoints:
+            - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+              port: https
+              scheme: https
+              tlsConfig:
+                caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                serverName: kubernetes
+              metricRelabelConfigs:
+                - action: drop
+                  if: '{__name__=~".+_bucket", __name__!~"apiserver_request_sli_duration_seconds_bucket|apiserver_client_certificate_expiration_seconds_bucket"}'
+
     # Ours are in infrastructure/configs.
     defaultDashboards:
       enabled: false
