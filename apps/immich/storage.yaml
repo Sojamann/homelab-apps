@@ -1,0 +1,35 @@
+# Originals, thumbnails, encoded video: a static PV on a fixed directory of the
+# `k8s-csi` export, as for nextcloud's files -- `Retain`, a rebuild re-binds by
+# name. Created by hand on the NAS, owned by uid 1000. NAS snapshots on
+# `slow/k8s-csi` are its backup.
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: immich-data
+spec:
+  capacity:
+    # A label -- NFS directory, not enforced.
+    storage: 500Gi
+  accessModes: [ReadWriteMany]
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: ""
+  mountOptions: [nfsvers=4.1, hard]
+  csi:
+    driver: nfs.csi.k8s.io
+    volumeHandle: immich-data
+    volumeAttributes:
+      server: 10.212.4.150
+      share: /mnt/slow/k8s-csi/immich
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: immich-data
+  namespace: immich
+spec:
+  accessModes: [ReadWriteMany]
+  storageClassName: ""
+  volumeName: immich-data
+  resources:
+    requests:
+      storage: 500Gi

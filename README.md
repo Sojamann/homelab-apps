@@ -27,9 +27,11 @@ graph TD
 
   APPS -->|applies| DH["dhs<br/>./apps/dhs<br/>prune - wait"]
   APPS -->|applies| GL["glance<br/>./apps/glance<br/>prune - wait"]
+  APPS -->|applies| IM["immich<br/>./apps/immich<br/>prune - wait"]
   APPS -->|applies| KB["kassenbuch<br/>./apps/kassenbuch<br/>prune - wait"]
   APPS -->|applies| ML["mealie<br/>./apps/mealie<br/>prune - wait"]
   APPS -->|applies| MM["memos<br/>./apps/memos<br/>prune - wait"]
+  APPS -->|applies| NC["nextcloud<br/>./apps/nextcloud<br/>prune - wait"]
   APPS -->|applies| ST["supplement-tracker<br/>./apps/supplement-tracker<br/>prune - wait"]
   APPS -->|applies| VW["vaultwarden<br/>./apps/vaultwarden<br/>prune - wait"]
 ```
@@ -74,9 +76,11 @@ lives in its own namespace together with its secrets and storage.
 |--------------------|--------------------------------|-----------------------------|--------------------------------------|
 | dhs                | Db dump + scrape of the DHS box, over the tailnet | --                 | [link](./docs/dhs.md)                |
 | glance             | Lab start page, release feed   | `dash.<app_domain>`         | [link](./docs/glance.md)             |
+| immich             | Photos: phone backup, faces, search | `photos.<app_domain>`  | [link](./docs/immich.md)             |
 | kassenbuch         | Kassenbuch of the Verein       | `kassenbuch.<app_domain>`   | [link](./docs/kassenbuch.md)         |
 | mealie             | Recipes, meal plan, shopping list | `recipes.<app_domain>` | [link](./docs/mealie.md)             |
 | memos              | Notes, on trial                | `notes.<app_domain>`        | [link](./docs/memos.md)              |
+| nextcloud          | Files: web UI, share links, sync | `files.<app_domain>`      | [link](./docs/nextcloud.md)          |
 | supplement-tracker | Household supplement tracker   | `supplements.<app_domain>`  | [link](./docs/supplement-tracker.md) |
 | vaultwarden        | Household password manager     | `passwords.<app_domain>`    | [link](./docs/vaultwarden.md)        |
 

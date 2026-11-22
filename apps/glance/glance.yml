@@ -17,6 +17,10 @@ pages:
                     description: Home automation
                     icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/home-assistant.svg
                     url: http://ha.${lab_domain}:8123
+                  - title: Immich
+                    description: Household photos
+                    icon: https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons@104a791794ef68b31bfecac676ddace8c223fd27/svg/immich.svg
+                    url: https://photos.${app_domain}
                   - title: Kassenbuch
                     description: Kassenbuch of the Verein
                     icon: mdi:cash-register

@@ -6,6 +6,7 @@ kind: Kustomization
 resources:
   - dhs.yaml
   - glance.yaml
+  - immich.yaml
   - kassenbuch.yaml
   - mealie.yaml
   - memos.yaml

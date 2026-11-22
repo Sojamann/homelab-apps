@@ -1,0 +1,71 @@
+# Immich's whole system config, rendered with the Pocket ID client (vault,
+# written in platform_secrets.tf). Setting a config file makes the admin UI's
+# settings read-only. Read at start only: restart the server after a change.
+# Keys left out keep Immich's defaults. `{{ "..." }}` escapes Immich's own
+# template braces from ESO's Go template.
+apiVersion: external-secrets.io/v1
+kind: ExternalSecret
+metadata:
+  name: immich-config
+  namespace: immich
+spec:
+  refreshInterval: 1h
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: openbao
+  target:
+    name: immich-config
+    template:
+      engineVersion: v2
+      data:
+        immich.yaml: |
+          server:
+            externalDomain: https://photos.${app_domain}
+          passwordLogin:
+            enabled: false
+          oauth:
+            enabled: true
+            autoLaunch: true
+            autoRegister: true
+            buttonText: Login with Pocket ID
+            issuerUrl: https://login.${app_domain}
+            clientId: {{ .clientId | quote }}
+            clientSecret: {{ .clientSecret | quote }}
+            scope: openid email profile groups
+            # Pocket ID custom claim on the `admins` group.
+            roleClaim: immich_role
+            storageLabelClaim: preferred_username
+          storageTemplate:
+            enabled: true
+            template: {{ "'{{y}}/{{y}}-{{MM}}-{{dd}}/{{filename}}'" }}
+          backup:
+            database:
+              enabled: false
+          newVersionCheck:
+            enabled: false
+          # The ML pod has 2 cores: one model job at a time.
+          job:
+            smartSearch:
+              concurrency: 1
+            faceDetection:
+              concurrency: 1
+            ocr:
+              concurrency: 1
+            thumbnailGeneration:
+              concurrency: 2
+            metadataExtraction:
+              concurrency: 2
+            videoConversion:
+              concurrency: 1
+          machineLearning:
+            urls:
+              - http://immich-machine-learning:3003
+  data:
+    - secretKey: clientId
+      remoteRef:
+        key: immich/app
+        property: oidc-client-id
+    - secretKey: clientSecret
+      remoteRef:
+        key: immich/app
+        property: oidc-client-secret

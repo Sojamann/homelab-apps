@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: immich-server
+  namespace: immich
+spec:
+  replicas: 1
+  # Two versions must never migrate the db at once.
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: immich-server
+  template:
+    metadata:
+      labels:
+        app: immich-server
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: server
+          image: ghcr.io/immich-app/immich-server:v3.4.2
+          env:
+            - name: DB_URL
+              valueFrom:
+                secretKeyRef: { name: immich-db-app, key: uri }
+            - name: REDIS_HOSTNAME
+              value: immich-valkey
+            - name: IMMICH_CONFIG_FILE
+              value: /config/immich.yaml
+            # No admin sign-up form: admins come from Pocket ID's claim.
+            - name: IMMICH_ALLOW_SETUP
+              value: "false"
+            # Envoy connects from the node or a pod address.
+            - name: IMMICH_TRUSTED_PROXIES
+              value: 10.244.0.0/16,10.212.4.0/24
+            - name: TZ
+              value: Europe/Berlin
+          ports:
+            - name: http
+              containerPort: 2283
+          # Migrations run before the API listens.
+          startupProbe:
+            httpGet:
+              path: /api/server/ping
+              port: http
+            periodSeconds: 10
+            failureThreshold: 90
+          readinessProbe:
+            httpGet:
+              path: /api/server/ping
+              port: http
+            periodSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /api/server/ping
+              port: http
+            periodSeconds: 30
+            failureThreshold: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: [ALL]
+          resources:
+            requests:
+              cpu: 200m
+              memory: 1Gi
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: config
+              mountPath: /config
+              readOnly: true
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: immich-data
+        - name: config
+          secret:
+            secretName: immich-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: immich-server
+  namespace: immich
+spec:
+  selector:
+    app: immich-server
+  ports:
+    - name: http
+      port: 2283
+      targetPort: http
