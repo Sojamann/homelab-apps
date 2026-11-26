@@ -82,16 +82,16 @@ spec:
           url: https://raw.githubusercontent.com/prometheus-operator/kube-prometheus/v0.19.0/manifests/nodeExporter-prometheusRule.yaml
         vmhealth:
           # renovate: datasource=github-tags depName=VictoriaMetrics/VictoriaMetrics
-          url: https://raw.githubusercontent.com/VictoriaMetrics/VictoriaMetrics/v1.156.0/deployment/docker/rules/alerts-health.yml
+          url: https://raw.githubusercontent.com/VictoriaMetrics/VictoriaMetrics/v1.157.0/deployment/docker/rules/alerts-health.yml
         vmagent:
           # renovate: datasource=github-tags depName=VictoriaMetrics/VictoriaMetrics
-          url: https://raw.githubusercontent.com/VictoriaMetrics/VictoriaMetrics/v1.156.0/deployment/docker/rules/alerts-vmagent.yml
+          url: https://raw.githubusercontent.com/VictoriaMetrics/VictoriaMetrics/v1.157.0/deployment/docker/rules/alerts-vmagent.yml
         vmalert:
           # renovate: datasource=github-tags depName=VictoriaMetrics/VictoriaMetrics
-          url: https://raw.githubusercontent.com/VictoriaMetrics/VictoriaMetrics/v1.156.0/deployment/docker/rules/alerts-vmalert.yml
+          url: https://raw.githubusercontent.com/VictoriaMetrics/VictoriaMetrics/v1.157.0/deployment/docker/rules/alerts-vmalert.yml
         vmsingle:
           # renovate: datasource=github-tags depName=VictoriaMetrics/VictoriaMetrics
-          url: https://raw.githubusercontent.com/VictoriaMetrics/VictoriaMetrics/v1.156.0/deployment/docker/rules/alerts-single-node.yml
+          url: https://raw.githubusercontent.com/VictoriaMetrics/VictoriaMetrics/v1.157.0/deployment/docker/rules/alerts-single-node.yml
         vmoperator:
           # renovate: datasource=github-tags depName=VictoriaMetrics/operator
           url: https://raw.githubusercontent.com/VictoriaMetrics/operator/v0.75.2/config/alerting/vmoperator-rules.yaml
